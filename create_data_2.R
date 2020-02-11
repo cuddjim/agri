@@ -46,5 +46,7 @@ list_of_sets[['grain_area']] = rbind(
     data.frame() ) %>%
   left_join(convert_sad, by='geo')
 
+farm_snd <- list_of_sets[["farm_snd"]]
+
 list_of_sets[['grain_area']] %>% count(SADRegion, sort=TRUE)
 no = list_of_sets[['grain_area']]

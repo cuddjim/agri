@@ -35,24 +35,25 @@ server <- function(input, output) {
   
   farm_snd_table <- reactive({
     
-    
+    print(input$map_commodity)
     selected_geo = input$province_farm
     
-    list_of_sets[["farm_snd"]] %>% #spread(ref_date, value) %>% 
+    farm_snd %>% spread(ref_date, value) %>% 
       select(-c('dguid','uom','uom_id','scalar_factor','scalar_id','vector',
                 'coordinate','status','symbol','terminated','decimals','geo_uid',
                 starts_with('hierarchy'),starts_with('classification'))) %>% 
-      filter(geo == 'Canada', type_of_crop == 'All wheat')
-    
-   
-      
+      filter(geo == selected_geo, type_of_crop == 'All wheat')
     
   })
-  
+
   output$farm_data <- renderDataTable({
     
-    datatable(farm_snd_table(), 
-              options = list(lengthMenu = list(c(8, 16, 24, 72,-1),c('8','16','24','72','All')), 
+    datatable(farm_snd_table(), extensions = c('Buttons','FixedColumns'),
+              options = list(buttons = c('copy','csv'),
+                             scrollX = TRUE,
+                             fixedColumns = list(leftColumns = 4),
+                             dom = 'Btpl',
+                             lengthMenu = list(c(8, 16, 24, 72,-1),c('8','16','24','72','All')), 
                              pageLength = 24,
                              initComplete = JS(
                                "function(settings, json) {",
@@ -67,82 +68,82 @@ server <- function(input, output) {
                                 "Crops and grains in Canada",
                                 style = "position: relative; top: 80%; transform: translateY(10%);")),
                
-               
-               tabPanel(
-                 
-                 tr()$t('Crop Production'),
-                 
-                 tabsetPanel(
-                   
-                   type='tabs',
-                   
-                   tabPanel(
-                     
-                     'Map',
-                     
-                     sidebarPanel(
-                       selectizeInput("map_commodity", label = 'Select Fuel Type',
-                                      choices = c('a','b'),
-                                      selected = 'a'),
-                       sliderInput("year", label = 'Select Year:',2005, 2018, value=2018,
-                                   step=1,
-                                   animate=TRUE,
-                                   sep = ""),
-                       width=2
-                     ),
-                     
-                     mainPanel(
-                       leafletOutput("plot",height=600),
-                       width=10
-                     )
-                     
-                   ),
-                   
-                   
-                   tabPanel(
-                     
-                     'Data table',
-                     
-                     sidebarPanel(
-                       selectizeInput("province_crop", label = 'Select Province',
-                                      choices = c('a','b'), selected='a'),
-                       width=3
-                     ),
-                     
-                     mainPanel(
-                       fluidRow(
-                         plotlyOutput("bubble", height = '650px')
-                       ),
-                       width=8
-                     )
-                     
-                   ),
-                   
-                   tabPanel(
-                     
-                     'Graphs',
-                     
-                     mainPanel(
-                       fluidRow(
-                         plotlyOutput("line", height = '550px')
-                       ),
-                       width=8
-                     )
-                     
-                   ),
-                   tabPanel(
-                     
-                     'Notes',
-                     
-                     mainPanel(
-                       dataTableOutput("storytable"),
-                       width=12
-                     )
-                     
-                   )
-                   
-                 )
-               ),
+               # 
+               # tabPanel(
+               #   
+               #   tr()$t('Crop Production'),
+               #   
+               #   tabsetPanel(
+               #     
+               #     type='tabs',
+               #     
+               #     tabPanel(
+               #       
+               #       'Map',
+               #       
+               #       sidebarPanel(
+               #         selectizeInput("map_commodity", label = 'Select Fuel Type',
+               #                        choices = c('a','b'),
+               #                        selected = 'a'),
+               #         sliderInput("year", label = 'Select Year:',2005, 2018, value=2018,
+               #                     step=1,
+               #                     animate=TRUE,
+               #                     sep = ""),
+               #         width=2
+               #       ),
+               #       
+               #       mainPanel(
+               #         leafletOutput("plot",height=600),
+               #         width=10
+               #       )
+               #       
+               #     ),
+               #     
+               #     
+               #     tabPanel(
+               #       
+               #       'Data table',
+               #       
+               #       sidebarPanel(
+               #         selectizeInput("province_crop", label = 'Select Province',
+               #                        choices = c('a','b'), selected='a'),
+               #         width=3
+               #       ),
+               #       
+               #       mainPanel(
+               #         fluidRow(
+               #           plotlyOutput("bubble", height = '650px')
+               #         ),
+               #         width=8
+               #       )
+               #       
+               #     ),
+               #     
+               #     tabPanel(
+               #       
+               #       'Graphs',
+               #       
+               #       mainPanel(
+               #         fluidRow(
+               #           plotlyOutput("line", height = '550px')
+               #         ),
+               #         width=8
+               #       )
+               #       
+               #     ),
+               #     tabPanel(
+               #       
+               #       'Notes',
+               #       
+               #       mainPanel(
+               #         dataTableOutput("storytable"),
+               #         width=12
+               #       )
+               #       
+               #     )
+               #     
+               #   )
+               # ),
                tabPanel(
                  
                  tr()$t('Farm supply and disposition of grains'),
@@ -180,66 +181,13 @@ server <- function(input, output) {
                      
                      sidebarPanel(
                        selectizeInput("province_farm", label = 'Select Province',
-                                      choices = unique(list_of_sets[["farm_snd"]]$geo), selected='Canada'),
+                                      choices = unique(farm_snd$geo), selected='Canada'),
                        width=3
                      ),
                      
                      mainPanel(
                        fluidRow(
                          dataTableOutput('farm_data')
-                       ),
-                       width=8
-                     )
-                     
-                   ),
-                   
-                   tabPanel(
-                     
-                     'Graphs',
-                     
-                     mainPanel(
-                       fluidRow(
-                         plotlyOutput("line", height = '550px')
-                       ),
-                       width=8
-                     )
-                     
-                   ),
-                   tabPanel(
-                     
-                     'Notes',
-                     
-                     mainPanel(
-                       dataTableOutput("storytable"),
-                       width=12
-                     )
-                     
-                   )
-                   
-                 )
-               ),
-               tabPanel(
-                 
-                 tr()$t('Supply and disposition of grains in Canada'),
-                 
-                 tabsetPanel(
-                   
-                   type='tabs',
-                   
-                   
-                   tabPanel(
-                     
-                     'Data table',
-                     
-                     sidebarPanel(
-                       selectizeInput("province", label = 'Select Province',
-                                      choices = c('a','b'), selected='a'),
-                       width=3
-                     ),
-                     
-                     mainPanel(
-                       fluidRow(
-                         plotlyOutput("bubble", height = '650px')
                        ),
                        width=8
                      )
