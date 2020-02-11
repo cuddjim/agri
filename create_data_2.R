@@ -4,7 +4,7 @@ library(cansim); library(tidyverse); library(janitor); library(rgeos); library(r
 
 ## create dictionary
 names_of_sets = c('grain_area', 'grain_prod', 'can_snd','corn_snd', 'farm_snd')
-location_of_sets = c('32100002', '32100359', '321000013', '321000014', '321000015')
+location_of_sets = c('32100002', '32100359', '32100013', '32100014', '32100015')
 sad_conversion = read_csv('sad_conversion.csv')
 
 ## create list of ndm sets
