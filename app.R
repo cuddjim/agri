@@ -68,10 +68,6 @@ server <- function(input, output) {
     navbarPage(title = div(span(img(src = "wheat2.png"),
                                 "Crops and grains in Canada",
                                 style = "position: relative; top: 80%; transform: translateY(10%);")),
-               
-               tabsetPanel(
-                 
-                 type='tabs',
                  
                tabPanel(
 
@@ -80,74 +76,23 @@ server <- function(input, output) {
                  tabsetPanel(
 
                    type='tabs',
-
-                   tabPanel(
-
-                     'Map',
-
-                     sidebarPanel(
-                       selectizeInput("map_commodity", label = 'Select Fuel Type',
-                                      choices = c('a','b'),
-                                      selected = 'a'),
-                       sliderInput("year", label = 'Select Year:',2005, 2018, value=2018,
-                                   step=1,
-                                   animate=TRUE,
-                                   sep = ""),
-                       width=2
-                     ),
-
-                     mainPanel(
-                       leafletOutput("plot",height=600),
-                       width=10
-                     )
-
-                   ),
-
-
-                   tabPanel(
-
-                     'Data table',
-
-                     sidebarPanel(
-                       selectizeInput("province_crop", label = 'Select Province',
-                                      choices = c('a','b'), selected='a'),
-                       width=3
-                     ),
-
-                     mainPanel(
-                       fluidRow(
-                         plotlyOutput("bubble", height = '650px')
-                       ),
-                       width=8
-                     )
-
-                   ),
-
+ 
                    tabPanel(
 
                      'Graphs',
 
                      mainPanel(
                        fluidRow(
-                         plotlyOutput("line", height = '550px')
+                         plotlyOutput("line1", height = '550px')
                        ),
                        width=8
-                     )
-
-                   ),
-                   tabPanel(
-
-                     'Notes',
-
-                     mainPanel(
-                       dataTableOutput("storytable"),
-                       width=12
                      )
 
                    )
 
                  )
                ),
+               
                tabPanel(
                  
                  tr()$t('Farm supply and disposition of grains'),
@@ -219,9 +164,7 @@ server <- function(input, output) {
                        width=12
                      )
                      
-                   
                  )
-               )
                )
                )
     )
