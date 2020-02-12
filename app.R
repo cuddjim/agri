@@ -108,27 +108,54 @@ server <- function(input, output) {
     
   })
   
-  farm_snd_graph <- reactive({
-
-
+  crop_1 <- reactive({
+    
+    
     selected_geo = input$province_farm_graph
     selected_crop_1 = input$crop_farm_graph_1
-    selected_crop_2 = input$crop_farm_graph_2
-    selected_crops = c(selected_crop_1,selected_crop_2)
     snd_choice = input$snd_graph
-
-    farm_snd %>% spread(ref_date, value) %>%
-      select(c('geo','type_of_crop','farm_supply_and_disposition_of_grains',ends_with('07'))) %>%
-      filter(geo == selected_geo, type_of_crop %in% selected_crops, farm_supply_and_disposition_of_grains == snd_choice)
-
+    
+    farm_snd %>% filter(grepl('-07',ref_date)) %>% 
+      mutate(crop_year = as.numeric(str_sub(ref_date,1,4))) %>% 
+      select(c('crop_year','geo','type_of_crop','farm_supply_and_disposition_of_grains','value')) %>% 
+      filter(geo == selected_geo,type_of_crop == selected_crop_1,
+             farm_supply_and_disposition_of_grains == snd_choice)
+    
   })
-
+  
+  crop_2 <- reactive({
+    
+    
+    selected_geo = input$province_farm_graph
+    selected_crop_2 = input$crop_farm_graph_2
+    snd_choice = input$snd_graph
+    
+    farm_snd %>% filter(grepl('-07',ref_date)) %>% 
+      mutate(crop_year = as.numeric(str_sub(ref_date,1,4))) %>% 
+      select(c('crop_year','geo','type_of_crop','farm_supply_and_disposition_of_grains','value')) %>% 
+      filter(geo == selected_geo,type_of_crop == selected_crop_2,
+             farm_supply_and_disposition_of_grains == snd_choice)
+    
+  })
+  
+  
+  
   output$farm_data_graph <- renderPlotly({
-
+    
     plot_ly() %>% 
-      add_trace(data = farm_snd_graph(), type = 'scatter',mode = 'markers') %>% 
-      add_trace(data = farm_snd_graph(),type = 'scatter',mode = 'markers')
-
+      add_trace(data = crop_1(), 
+                x = ~crop_year,y = ~value,
+                type = 'scatter',mode = 'lines', name = selected_crop_1,
+                hoverinfo = 'text', text = ~paste(format(round(value, 0), 
+                                                         big.mark = ',',
+                                                         scientific = F),'tonnes')) %>% 
+      add_trace(data = crop_2(), 
+                x = ~crop_year,y = ~value,
+                type = 'scatter',mode = 'lines', name = selected_crop_2,
+                hoverinfo = 'text', text = ~paste(format(round(value, 0), 
+                                                         big.mark = ',',
+                                                         scientific = F),'tonnes'))
+    
   })
   
   output$select_language <- renderUI({
