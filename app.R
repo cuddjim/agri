@@ -36,18 +36,17 @@ server <- function(input, output) {
   
   farm_snd_table <- reactive({
     
-    print(input$map_commodity)
+    
     selected_geo = input$province_farm
+    selected_crop = input$crop_farm
     
     farm_snd %>% spread(ref_date, value) %>% 
-      select(-c('dguid','uom','uom_id','scalar_factor','scalar_id','vector',
-                'coordinate','status','symbol','terminated','decimals','geo_uid',
-                starts_with('hierarchy'),starts_with('classification'))) %>% 
-      filter(geo == selected_geo, type_of_crop == 'All wheat')
+      select(c('geo','type_of_crop','farm_supply_and_disposition_of_grains',ends_with('07'),ends_with('03'),ends_with('12'))) %>% 
+      filter(geo == selected_geo, type_of_crop == selected_crop)
     
   })
 
-  output$farm_data <- renderDataTable({
+  output$farm_data_table <- renderDataTable({
     
     datatable(farm_snd_table(), extensions = c('Buttons','FixedColumns'),
               options = list(buttons = c('copy','csv'),
@@ -58,9 +57,32 @@ server <- function(input, output) {
                              pageLength = 24,
                              initComplete = JS(
                                "function(settings, json) {",
-                               "$(this.api().table().header()).css({'background-color': '#020437', 'color': '#fff'});",
+                               "$(this.api().table().header()).css({'background-color': '#03085B', 'color': '#fff'});",
                                "}")))
     
+  })
+  
+  farm_snd_graph <- reactive({
+
+
+    selected_geo = input$province_farm_graph
+    selected_crop_1 = input$crop_farm_graph_1
+    selected_crop_2 = input$crop_farm_graph_2
+    selected_crops = c(selected_crop_1,selected_crop_2)
+    snd_choice = input$snd_graph
+
+    farm_snd %>% spread(ref_date, value) %>%
+      select(c('geo','type_of_crop','farm_supply_and_disposition_of_grains',ends_with('07'))) %>%
+      filter(geo == selected_geo, type_of_crop %in% selected_crops, farm_supply_and_disposition_of_grains == snd_choice)
+
+  })
+
+  output$farm_data_graph <- renderPlotly({
+
+    plot_ly() %>% 
+      add_trace(data = farm_snd_graph(), type = 'scatter',mode = 'markers') %>% 
+      add_trace(data = farm_snd_graph(),type = 'scatter',mode = 'markers')
+
   })
   
   output$page_content <- renderUI({
@@ -131,12 +153,14 @@ server <- function(input, output) {
                      sidebarPanel(
                        selectizeInput("province_farm", label = 'Select Province',
                                       choices = unique(farm_snd$geo), selected='Canada'),
+                       selectizeInput("crop_farm", label = 'Select Crop',
+                                      choices = unique(farm_snd$type_of_crop), selected='All wheat'),
                        width=3
                      ),
                      
                      mainPanel(
                        fluidRow(
-                         dataTableOutput('farm_data')
+                         dataTableOutput('farm_data_table')
                        ),
                        width=8
                      )
@@ -147,9 +171,21 @@ server <- function(input, output) {
                      
                      'Graphs',
                      
+                     sidebarPanel(
+                       selectizeInput("province_farm_graph", label = 'Select Province',
+                                      choices = unique(farm_snd$geo), selected='Canada'),
+                       selectizeInput("crop_farm_graph_1", label = 'Select Crop',
+                                      choices = unique(farm_snd$type_of_crop), selected='All wheat'),
+                       selectizeInput("crop_farm_graph_2", label = 'Select Crop',
+                                     choices = unique(farm_snd$type_of_crop), selected='Canola'),
+                       selectizeInput('snd_graph', label = 'Select variable',
+                                      choices = unique(farm_snd$farm_supply_and_disposition_of_grains), selected = 'Production'),
+                       width=3
+                     ),
+                     
                      mainPanel(
                        fluidRow(
-                         plotlyOutput("line", height = '550px')
+                         plotlyOutput("farm_data_graph", height = '550px')
                        ),
                        width=8
                      )
