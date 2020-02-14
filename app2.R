@@ -82,7 +82,7 @@ server <- function(input, output) {
     selected_crop = input$crop_farm
     selected_variable = input$var_farm
     
-    farm_snd %>% spread(ref_date, value) %>% 
+    list_of_sets[['can_snd']] %>% spread(ref_date, value) %>% 
       select(c('geo','type_of_crop','farm_supply_and_disposition_of_grains',ends_with('07'),ends_with('03'),ends_with('12'))) %>% 
       filter(
         geo == selected_geo, 
@@ -108,54 +108,54 @@ server <- function(input, output) {
     
   })
   
-  crop_1 <- reactive({
+  farm_plot_reactive_1 <- reactive({
     
     
-    selected_geo = input$province_farm_graph
-    selected_crop_1 = input$crop_farm_graph_1
-    snd_choice = input$snd_graph
+    farm_plot_geo = input$farm_prov_plot
+    farm_plot_crop_1 = input$farm_prov_plot_1
+    farm_plot_var = input$farm_var_plot
     
-    farm_snd %>% filter(grepl('-07',ref_date)) %>%
+    list_of_sets[['can_snd']] %>% filter(grepl('-07',ref_date)) %>%
       mutate(crop_year = as.numeric(str_sub(ref_date,1,4))) %>%
       select(c('crop_year','geo','type_of_crop','farm_supply_and_disposition_of_grains','value')) %>%
-      filter(geo == selected_geo,type_of_crop == selected_crop_1,
-             farm_supply_and_disposition_of_grains == snd_choice)
+      filter(geo == farm_plot_geo,type_of_crop == farm_plot_crop_1,
+             farm_supply_and_disposition_of_grains == farm_plot_var)
     
   })
   
-  crop_2 <- reactive({
+  farm_plot_reactive_2 <- reactive({
     
     
-    selected_geo = input$province_farm_graph
-    selected_crop_2 = input$crop_farm_graph_2
-    snd_choice = input$snd_graph
+    farm_plot_geo = input$farm_prov_plot
+    farm_plot_crop_2 = input$farm_prov_plot_2
+    farm_plot_var = input$farm_var_plot
     
-    farm_snd %>% filter(grepl('-07',ref_date)) %>%
+    list_of_sets[['can_snd']] %>% filter(grepl('-07',ref_date)) %>%
       mutate(crop_year = as.numeric(str_sub(ref_date,1,4))) %>%
       select(c('crop_year','geo','type_of_crop','farm_supply_and_disposition_of_grains','value')) %>%
-      filter(geo == selected_geo,type_of_crop == selected_crop_2,
-             farm_supply_and_disposition_of_grains == snd_choice)
+      filter(geo == farm_plot_geo,type_of_crop == farm_plot_crop_2,
+             farm_supply_and_disposition_of_grains == farm_plot_var)
     
   })
   
-  crop_3 <- reactive({
+  farm_plot_reactive_3 <- reactive({
     
     
-    selected_geo = input$province_farm_graph
-    selected_crop_3 = input$crop_farm_graph_3
-    snd_choice = input$snd_graph
+    farm_plot_geo = input$farm_prov_plot
+    farm_plot_crop_3 = input$farm_prov_plot_3
+    farm_plot_var = input$farm_var_plot
     
-    farm_snd %>% filter(grepl('-07',ref_date)) %>%
+    list_of_sets[['can_snd']] %>% filter(grepl('-07',ref_date)) %>%
       mutate(crop_year = as.numeric(str_sub(ref_date,1,4))) %>%
       select(c('crop_year','geo','type_of_crop','farm_supply_and_disposition_of_grains','value')) %>%
-      filter(geo == selected_geo,type_of_crop == selected_crop_3,
-             farm_supply_and_disposition_of_grains == snd_choice)
+      filter(geo == farm_plot_geo,type_of_crop == farm_plot_crop_3,
+             farm_supply_and_disposition_of_grains == farm_plot_var)
     
   })
   
   
   
-  output$farm_data_graph <- renderPlotly({
+  output$farm_plot <- renderPlotly({
     
     xaxis <- list(title = "",
                   showline = TRUE,
@@ -183,121 +183,121 @@ server <- function(input, output) {
                    r = 100,
                    t = 110)
     
-    crop_1_ann_1 <- list(
+    farm_plot_reactive_1_ann_1 <- list(
       xref = 'paper',
       yref = 'y',
       x = 0.05,
-      y = crop_1()$value[1],
+      y = farm_plot_reactive_1()$value[1],
       xanchor = 'right',
       yanchor = 'middle',
-      text = ~paste(format(crop_1()$value[1],big.mark = ','),'tonnes'),
+      text = ~paste(format(farm_plot_reactive_1()$value[1],big.mark = ','),'tonnes'),
       font = list(family = 'Arial',
                   size = 16,
                   color = 'rgba(67,67,67,1)'),
       showarrow = FALSE)
     
-    crop_1_ann_2 <- list(
+    farm_plot_reactive_1_ann_2 <- list(
       xref = 'paper',
       yref = 'y',
       x = 0.95,
-      y = crop_1()$value[nrow(crop_1())],
+      y = farm_plot_reactive_1()$value[nrow(farm_plot_reactive_1())],
       xanchor = 'left',
       yanchor = 'middle',
-      text = ~paste(format(crop_1()$value[nrow(crop_1())],big.mark = ','),'tonnes'),
+      text = ~paste(format(farm_plot_reactive_1()$value[nrow(farm_plot_reactive_1())],big.mark = ','),'tonnes'),
       font = list(family = 'Arial',
                   size = 16,
                   color = 'rgba(67,67,67,1)'),
       showarrow = FALSE)
     
-    crop_2_ann_1 <- list(
+    farm_plot_reactive_2_ann_1 <- list(
       xref = 'paper',
       yref = 'y',
       x = 0.05,
-      y = crop_2()$value[1],
+      y = farm_plot_reactive_2()$value[1],
       xanchor = 'right',
       yanchor = 'middle',
-      text = ~paste(format(crop_2()$value[1],big.mark = ','),'tonnes'),
+      text = ~paste(format(farm_plot_reactive_2()$value[1],big.mark = ','),'tonnes'),
       font = list(family = 'Arial',
                   size = 16,
                   color = 'rgba(67,67,67,1)'),
       showarrow = FALSE)
     
-    crop_2_ann_2 <- list(
+    farm_plot_reactive_2_ann_2 <- list(
       xref = 'paper',
       yref = 'y',
       x = 0.95,
-      y = crop_2()$value[nrow(crop_2())],
+      y = farm_plot_reactive_2()$value[nrow(farm_plot_reactive_2())],
       xanchor = 'left',
       yanchor = 'middle',
-      text = ~paste(format(crop_2()$value[nrow(crop_2())],big.mark = ','),'tonnes'),
+      text = ~paste(format(farm_plot_reactive_2()$value[nrow(farm_plot_reactive_2())],big.mark = ','),'tonnes'),
       font = list(family = 'Arial',
                   size = 16,
                   color = 'rgba(67,67,67,1)'),
       showarrow = FALSE)
     
-    crop_3_ann_1 <- list(
+    farm_plot_reactive_3_ann_1 <- list(
       xref = 'paper',
       yref = 'y',
       x = 0.05,
-      y = crop_3()$value[1],
+      y = farm_plot_reactive_3()$value[1],
       xanchor = 'right',
       yanchor = 'middle',
-      text = ~paste(format(crop_3()$value[1],big.mark = ','),'tonnes'),
+      text = ~paste(format(farm_plot_reactive_3()$value[1],big.mark = ','),'tonnes'),
       font = list(family = 'Arial',
                   size = 16,
                   color = 'rgba(67,67,67,1)'),
       showarrow = FALSE)
     
-    crop_3_ann_2 <- list(
+    farm_plot_reactive_3_ann_2 <- list(
       xref = 'paper',
       yref = 'y',
       x = 0.95,
-      y = crop_3()$value[nrow(crop_3())],
+      y = farm_plot_reactive_3()$value[nrow(farm_plot_reactive_3())],
       xanchor = 'left',
       yanchor = 'middle',
-      text = ~paste(format(crop_3()$value[nrow(crop_3())],big.mark = ','),'tonnes'),
+      text = ~paste(format(farm_plot_reactive_3()$value[nrow(farm_plot_reactive_3())],big.mark = ','),'tonnes'),
       font = list(family = 'Arial',
                   size = 16,
                   color = 'rgba(67,67,67,1)'),
       showarrow = FALSE)
     
     plot_ly() %>%
-      add_trace(data = crop_1(),
+      add_trace(data = farm_plot_reactive_1(),
                 x = ~crop_year,y = ~value,
-                type = 'scatter',mode = 'lines', name = selected_crop_1,
+                type = 'scatter',mode = 'lines', name = farm_plot_crop_1,
                 hoverinfo = 'text', text = ~paste(format(round(value, 0),
                                                          big.mark = ',',
                                                          scientific = F),'tonnes'),
                 line = list(color = 'rgba(67,67,67,1)', width = 5)) %>%
-      add_trace(data = crop_2(),
+      add_trace(data = farm_plot_reactive_2(),
                 x = ~crop_year,y = ~value,
-                type = 'scatter',mode = 'lines', name = selected_crop_2,
+                type = 'scatter',mode = 'lines', name = farm_plot_crop_2,
                 hoverinfo = 'text', text = ~paste(format(round(value, 0),
                                                          big.mark = ',',
                                                          scientific = F),'tonnes'),
                 line = list(color = 'rgba(49,130,189,1)', width = 5)) %>% 
-      add_trace(data = crop_3(),
+      add_trace(data = farm_plot_reactive_3(),
                 x = ~crop_year,y = ~value,
-                type = 'scatter',mode = 'lines', name = selected_crop_3,
+                type = 'scatter',mode = 'lines', name = farm_plot_crop_3,
                 hoverinfo = 'text', text = ~paste(format(round(value, 0),
                                                          big.mark = ',',
                                                          scientific = F),'tonnes'),
                 line = list(color = 'rgba(25,180,126,1)', width = 5)) %>% 
-      add_trace(x = ~c(crop_1()$crop_year[1], crop_1()$crop_year[nrow(crop_1())]), y = ~c(crop_1()$value[1], crop_1()$value[nrow(crop_1())]), 
-                hoverinfo = 'text', text = ~paste(format(selected_crop_1)),type = 'scatter', mode = 'markers', marker = list(color = 'rgba(67,67,67,1)', size = 10), showlegend = FALSE) %>%
-      add_trace(x = ~c(crop_2()$crop_year[1], crop_2()$crop_year[nrow(crop_2())]), y = ~c(crop_2()$value[1], crop_2()$value[nrow(crop_2())]), 
-                hoverinfo = 'text', text = ~paste(format(selected_crop_2)),type = 'scatter', mode = 'markers', marker = list(color = 'rgba(49,130,189, 1)', size = 10), showlegend = FALSE) %>% 
-      add_trace(x = ~c(crop_3()$crop_year[1], crop_3()$crop_year[nrow(crop_3())]), y = ~c(crop_3()$value[1], crop_3()$value[nrow(crop_3())]), 
-                hoverinfo = 'text', text = ~paste(format(selected_crop_3)),type = 'scatter', mode = 'markers', marker = list(color = 'rgba(25,180,126,1)', size = 10), showlegend = FALSE) %>% 
-      layout(title = paste0('<b>Comparing ',input$crop_farm_graph_1,', ',input$crop_farm_graph_2,' and ',input$crop_farm_graph_3,' ',input$snd_graph,' in ',input$province_farm_graph,'</b>'), xaxis = xaxis, yaxis = yaxis, margin = margin,
+      add_trace(x = ~c(farm_plot_reactive_1()$crop_year[1], farm_plot_reactive_1()$crop_year[nrow(farm_plot_reactive_1())]), y = ~c(farm_plot_reactive_1()$value[1], farm_plot_reactive_1()$value[nrow(farm_plot_reactive_1())]), 
+                hoverinfo = 'text', text = ~paste(format(farm_plot_crop_1)),type = 'scatter', mode = 'markers', marker = list(color = 'rgba(67,67,67,1)', size = 10), showlegend = FALSE) %>%
+      add_trace(x = ~c(farm_plot_reactive_2()$crop_year[1], farm_plot_reactive_2()$crop_year[nrow(farm_plot_reactive_2())]), y = ~c(farm_plot_reactive_2()$value[1], farm_plot_reactive_2()$value[nrow(farm_plot_reactive_2())]), 
+                hoverinfo = 'text', text = ~paste(format(farm_plot_crop_2)),type = 'scatter', mode = 'markers', marker = list(color = 'rgba(49,130,189, 1)', size = 10), showlegend = FALSE) %>% 
+      add_trace(x = ~c(farm_plot_reactive_3()$crop_year[1], farm_plot_reactive_3()$crop_year[nrow(farm_plot_reactive_3())]), y = ~c(farm_plot_reactive_3()$value[1], farm_plot_reactive_3()$value[nrow(farm_plot_reactive_3())]), 
+                hoverinfo = 'text', text = ~paste(format(farm_plot_crop_3)),type = 'scatter', mode = 'markers', marker = list(color = 'rgba(25,180,126,1)', size = 10), showlegend = FALSE) %>% 
+      layout(title = paste0('<b>Comparing ',input$farm_prov_plot_1,', ',input$farm_prov_plot_2,' and ',input$farm_prov_plot_3,' ',input$farm_var_plot,' in ',input$farm_prov_plot,'</b>'), xaxis = xaxis, yaxis = yaxis, margin = margin,
              autosize = T,
              showlegend = T,
-             annotations = crop_1_ann_1) %>%
-      layout(annotations = crop_2_ann_1) %>%
-      layout(annotations = crop_3_ann_1) %>% 
-      layout(annotations = crop_1_ann_2) %>%
-      layout(annotations = crop_2_ann_2) %>% 
-      layout(annotations = crop_3_ann_2)
+             annotations = farm_plot_reactive_1_ann_1) %>%
+      layout(annotations = farm_plot_reactive_2_ann_1) %>%
+      layout(annotations = farm_plot_reactive_3_ann_1) %>% 
+      layout(annotations = farm_plot_reactive_1_ann_2) %>%
+      layout(annotations = farm_plot_reactive_2_ann_2) %>% 
+      layout(annotations = farm_plot_reactive_3_ann_2)
       
     
   })
@@ -396,11 +396,11 @@ server <- function(input, output) {
                      
                      sidebarPanel(
                        selectizeInput("province_farm", label = 'Select Province',
-                                      choices = unique(farm_snd$geo), selected='Canada'),
+                                      choices = unique(list_of_sets[['can_snd']]$geo), selected='Canada'),
                        selectizeInput("crop_farm", label = 'Select Crop',
-                                      choices = unique(farm_snd$type_of_crop), selected='All wheat'),
+                                      choices = unique(list_of_sets[['can_snd']]$type_of_crop), selected='All wheat'),
                        selectizeInput("var_farm", label = 'Select Variable',
-                                      choices = unique(farm_snd$farm_supply_and_disposition_of_grains), selected='Production'),
+                                      choices = unique(list_of_sets[['can_snd']]$farm_supply_and_disposition_of_grains), selected='Production'),
                        width=3
                      ),
                      
@@ -418,22 +418,22 @@ server <- function(input, output) {
                      'Graphs',
                      
                      sidebarPanel(
-                       selectizeInput("province_farm_graph", label = 'Select Province',
-                                      choices = unique(farm_snd$geo), selected='Canada'),
-                       selectizeInput("crop_farm_graph_1", label = 'Select Crop',
-                                      choices = unique(farm_snd$type_of_crop), selected='All wheat'),
-                       selectizeInput("crop_farm_graph_2", label = 'Select Crop',
-                                     choices = unique(farm_snd$type_of_crop), selected='Canola'),
-                       selectizeInput("crop_farm_graph_3", label = 'Select Crop',
-                                      choices = unique(farm_snd$type_of_crop), selected='Barley'),
-                       selectizeInput('snd_graph', label = 'Select variable',
-                                      choices = unique(farm_snd$farm_supply_and_disposition_of_grains), selected = 'Production'),
+                       selectizeInput("farm_prov_plot", label = 'Select Province',
+                                      choices = unique(list_of_sets[['can_snd']]$geo), selected='Canada'),
+                       selectizeInput("farm_prov_plot_1", label = 'Select Crop',
+                                      choices = unique(list_of_sets[['can_snd']]$type_of_crop), selected='All wheat'),
+                       selectizeInput("farm_prov_plot_2", label = 'Select Crop',
+                                     choices = unique(list_of_sets[['can_snd']]$type_of_crop), selected='Canola'),
+                       selectizeInput("farm_prov_plot_3", label = 'Select Crop',
+                                      choices = unique(list_of_sets[['can_snd']]$type_of_crop), selected='Barley'),
+                       selectizeInput('farm_var_plot', label = 'Select variable',
+                                      choices = unique(list_of_sets[['can_snd']]$farm_supply_and_disposition_of_grains), selected = 'Production'),
                        width=3
                      ),
                      
                      mainPanel(
                        fluidRow(
-                         plotlyOutput("farm_data_graph", height = '550px')
+                         plotlyOutput("farm_plot", height = '550px')
                        ),
                        width=9
                      )
