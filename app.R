@@ -181,20 +181,22 @@ server <- function(input, output) {
     
     min_year = min(input$farm_map_year); max_year = max(input$farm_map_year)
     farm_map_crop = input$farm_map_crop
-    min_map_disp_1 = str_c(farm_map_crop,'_production_',min_year); max_map_disp_1 = str_c(farm_map_crop,'_production_',max_year)
-    min_map_disp_2 = str_c(farm_map_crop,'_harvested_area_',min_year); max_map_disp_2 = str_c(farm_map_crop,'_harvested_area_',max_year)
+    min_map_snd_1 = str_c(farm_map_crop,'_production_',min_year,'-07'); max_map_snd_1 = str_c(farm_map_crop,'_production_',max_year,'-07')
+    min_map_snd_2 = str_c(farm_map_crop,'_deliveries_',min_year,'-07'); max_map_snd_2 = str_c(farm_map_crop,'_deliveries_',max_year,'-07')
     
     prov_map@data %<>% 
-      left_join(list_of_sets[['grain_area']] %>%
-                  unite(variable,c('type_of_crop','harvest_disposition','ref_date')) %>%
-                  select(variable,value,sad_code,geo) %>%
+      left_join(list_of_sets[['farm_snd']] %>%
+                  unite(variable,c('type_of_crop','farm_supply_and_disposition_of_grains','ref_date')) %>%
+                  select(variable,value,geo) %>%
                   spread(variable,value) %>%
-                  mutate(sad_code = as.character(sad_code)), by=c('PRSADReg'='sad_code')
+                  select(geo,ends_with('07')), by=c('NAME'='geo')
       ) %>%
-      mutate(disp_1=round(rowMeans(select(.,min_map_disp_1:max_map_disp_1),na.rm=TRUE),0),
-             disp_2=round(rowMeans(select(.,min_map_disp_2:max_map_disp_2),na.rm=TRUE),0))
+      mutate(
+        snd_1=round(rowMeans(select(.,min_map_snd_1:max_map_snd_1),na.rm=TRUE),0),
+        snd_2=round(rowMeans(select(.,min_map_snd_2:max_map_snd_2),na.rm=TRUE),0)
+        )
     
-    sad_map
+    prov_map
     
   })
   
@@ -208,7 +210,7 @@ server <- function(input, output) {
       clearShapes() %>%
       clearControls() %>%
       addPolygons(data = farm_map_reactive(),
-                  fillColor = ~colorBin(c("#E1F5C4","#EDE574","#F9D423","#FC913A","#FF4E50"), disp_1, 5)(disp_1),
+                  fillColor = ~colorBin(c("#E1F5C4","#EDE574","#F9D423","#FC913A","#FF4E50"), snd_1, 5)(snd_1),
                   color = "#BDBDC3",
                   fillOpacity = 0.7,
                   weight = 4)
@@ -220,14 +222,13 @@ server <- function(input, output) {
     
     farm_prov_table = input$farm_prov_table
     farm_crop_table = input$farm_crop_table
-    farm_var_table = input$farm_var_table
+    # farm_var_table = input$farm_var_table
     
     list_of_sets[['farm_snd']] %>% spread(ref_date, value) %>% 
       select(c('geo','type_of_crop','farm_supply_and_disposition_of_grains',ends_with('07'),ends_with('03'),ends_with('12'))) %>% 
       filter(
-        geo == farm_prov_table, 
-        type_of_crop == farm_crop_table,
-        farm_supply_and_disposition_of_grains == farm_var_table) %>%
+        geo %in% farm_prov_table, 
+        type_of_crop == farm_crop_table) %>%
       rename(Province=geo,Crop=type_of_crop,Variable=farm_supply_and_disposition_of_grains)
     
   })
@@ -405,21 +406,21 @@ server <- function(input, output) {
     plot_ly() %>%
       add_trace(data = farm_plot_reactive_1(),
                 x = ~crop_year,y = ~value,
-                type = 'scatter',mode = 'lines', #name = farm_plot_crop_1,
+                type = 'scatter',mode = 'lines', name = input$farm_crop_plot_1,
                 hoverinfo = 'text', text = ~paste(format(round(value, 0),
                                                          big.mark = ',',
                                                          scientific = F),'tonnes'),
                 line = list(color = 'rgba(67,67,67,1)', width = 5)) %>%
       add_trace(data = farm_plot_reactive_2(),
                 x = ~crop_year,y = ~value,
-                type = 'scatter',mode = 'lines', #name = farm_plot_crop_2,
+                type = 'scatter',mode = 'lines', name = input$farm_crop_plot_2,
                 hoverinfo = 'text', text = ~paste(format(round(value, 0),
                                                          big.mark = ',',
                                                          scientific = F),'tonnes'),
                 line = list(color = 'rgba(49,130,189,1)', width = 5)) %>% 
       add_trace(data = farm_plot_reactive_3(),
                 x = ~crop_year,y = ~value,
-                type = 'scatter',mode = 'lines', name = input$farm_plot_crop_3,
+                type = 'scatter',mode = 'lines', name = input$farm_crop_plot_3,
                 hoverinfo = 'text', text = ~paste(format(round(value, 0),
                                                          big.mark = ',',
                                                          scientific = F),'tonnes'),
@@ -433,7 +434,7 @@ server <- function(input, output) {
       add_trace(x = ~c(farm_plot_reactive_3()$crop_year[1], farm_plot_reactive_3()$crop_year[nrow(farm_plot_reactive_3())]), y = ~c(farm_plot_reactive_3()$value[1], farm_plot_reactive_3()$value[nrow(farm_plot_reactive_3())]), 
                 hoverinfo = 'text',# text = ~paste(format(farm_plot_crop_3)),
                 type = 'scatter', mode = 'markers', marker = list(color = 'rgba(25,180,126,1)', size = 10), showlegend = FALSE) %>% 
-      layout(title = paste0('<b>Comparing ',input$farm_prov_plot_1,', ',input$farm_prov_plot_2,' and ',input$farm_prov_plot_3,' ',input$farm_var_plot,' in ',input$farm_prov_plot,'</b>'), xaxis = xaxis, yaxis = yaxis, margin = margin,
+      layout(title = paste0('<b>Comparing ',input$farm_crop_plot_1,', ',input$farm_crop_plot_2,' and ',input$farm_crop_plot_3,' ',input$farm_var_plot,' in ',input$farm_prov_plot,'</b>'), xaxis = xaxis, yaxis = yaxis, margin = margin,
              autosize = T,
              showlegend = T,
              annotations = farm_plot_reactive_1_ann_1) %>%
@@ -669,9 +670,9 @@ server <- function(input, output) {
                      'Map',
                      
                      sidebarPanel(
-                       selectizeInput("farm_map_var", label = 'Select Fuel Type',
-                                      choices = c('a','b'),
-                                      selected = 'a'),
+                       selectizeInput("farm_map_crop", label = 'Select Fuel Type',
+                                      choices = c('barley','canola'),
+                                      selected = 'barley'),
                        sliderInput("farm_map_year", label = 'Select Year:',2005, 2018, value=2018,
                                    step=1,
                                    animate=TRUE,
@@ -693,11 +694,9 @@ server <- function(input, output) {
                      
                      sidebarPanel(
                        selectizeInput("farm_prov_table", label = 'Select Province',
-                                      choices = unique(list_of_sets[['farm_snd']]$geo), selected='Canada'),
+                                      choices = unique(list_of_sets[['farm_snd']]$geo), , multiple = TRUE, selected='Canada'),
                        selectizeInput("farm_crop_table", label = 'Select Crop',
                                       choices = unique(list_of_sets[['farm_snd']]$type_of_crop), selected='All wheat'),
-                       selectizeInput("farm_var_table", label = 'Select Variable',
-                                      choices = unique(list_of_sets[['farm_snd']]$farm_supply_and_disposition_of_grains), selected='Production'),
                        width=3
                      ),
                      

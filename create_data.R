@@ -18,6 +18,12 @@ list_of_sets = map(location_of_sets,
 
 names(list_of_sets) = names_of_sets
 
+## create sad map
+sad_map = readOGR('CropsSADRegions_2017_Gen/CropsSADRegions_2017_Gen.shp',stringsAsFactors = FALSE)
+
+## create prov map
+prov_map = readOGR('Canada/Canada.shp',stringsAsFactors = FALSE)
+prov_map = spTransform(prov_map, CRS("+proj=longlat +datum=WGS84"))
 
 ## convert new sasksatchewan regions
 rbind(
@@ -56,12 +62,14 @@ rbind(
     )  -> list_of_sets[['grain_area']]
 
 
-## create sad map
-sad_map = readOGR('CropsSADRegions_2017_Gen/CropsSADRegions_2017_Gen.shp',stringsAsFactors = FALSE)
 list_of_sets[['farm_snd']] %<>%
+  filter(
+    farm_supply_and_disposition_of_grains %in% c("Production", "Deliveries", "Total supplies") &
+      type_of_crop %in% c('Barley','Oats','Wheat, all','Canola','Peas, dry','Rye, fall remaining','Lentils','Flaxseed','Mustard seed')
+  ) %>%
   mutate(
     type_of_crop=gsub("(.*),.*", "\\1", tolower(type_of_crop)),
-    harvest_disposition = str_replace(harvest_disposition, " \\(.*\\)", ""),
-    harvest_disposition = gsub(" ","_",tolower(harvest_disposition))
+    farm_supply_and_disposition_of_grains = str_replace(farm_supply_and_disposition_of_grains, " \\(.*\\)", ""),
+    farm_supply_and_disposition_of_grains = gsub(" ","_",tolower(farm_supply_and_disposition_of_grains))
   )
-names(list_of_sets[['farm_snd']])
+
