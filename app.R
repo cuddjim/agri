@@ -426,13 +426,13 @@ server <- function(input, output) {
                                                          scientific = F),'tonnes'),
                 line = list(color = 'rgba(25,180,126,1)', width = 5)) %>% 
       add_trace(x = ~c(farm_plot_reactive_1()$crop_year[1], farm_plot_reactive_1()$crop_year[nrow(farm_plot_reactive_1())]), y = ~c(farm_plot_reactive_1()$value[1], farm_plot_reactive_1()$value[nrow(farm_plot_reactive_1())]), 
-                hoverinfo = 'text',# text = ~paste(format(farm_plot_crop_1)),
+                hoverinfo = 'text', text = ~paste(format(input$farm_crop_plot_1)),
                 type = 'scatter', mode = 'markers', marker = list(color = 'rgba(67,67,67,1)', size = 10), showlegend = FALSE) %>%
       add_trace(x = ~c(farm_plot_reactive_2()$crop_year[1], farm_plot_reactive_2()$crop_year[nrow(farm_plot_reactive_2())]), y = ~c(farm_plot_reactive_2()$value[1], farm_plot_reactive_2()$value[nrow(farm_plot_reactive_2())]), 
-                hoverinfo = 'text',# text = ~paste(format(farm_plot_crop_2)),
+                hoverinfo = 'text', text = ~paste(format(input$farm_crop_plot_2)),
                 type = 'scatter', mode = 'markers', marker = list(color = 'rgba(49,130,189, 1)', size = 10), showlegend = FALSE) %>% 
       add_trace(x = ~c(farm_plot_reactive_3()$crop_year[1], farm_plot_reactive_3()$crop_year[nrow(farm_plot_reactive_3())]), y = ~c(farm_plot_reactive_3()$value[1], farm_plot_reactive_3()$value[nrow(farm_plot_reactive_3())]), 
-                hoverinfo = 'text',# text = ~paste(format(farm_plot_crop_3)),
+                hoverinfo = 'text', text = ~paste(format(input$farm_crop_plot_3)),
                 type = 'scatter', mode = 'markers', marker = list(color = 'rgba(25,180,126,1)', size = 10), showlegend = FALSE) %>% 
       layout(title = paste0('<b>Comparing ',input$farm_crop_plot_1,', ',input$farm_crop_plot_2,' and ',input$farm_crop_plot_3,' ',input$farm_var_plot,' in ',input$farm_prov_plot,'</b>'), xaxis = xaxis, yaxis = yaxis, margin = margin,
              autosize = T,
