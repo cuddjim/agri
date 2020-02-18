@@ -3,7 +3,14 @@ library(shiny); library(shiny.i18n)
 library(leaflet); library(plotly)
 library(DT); library(shinyWidgets)
 library(shinythemes)
-?shinythemes
+
+# 1 create plots for tabs 1 and 3
+# add footnotes to tabs 1,2 and 3
+# add translation for tabs + snd names, etc
+# make names nice (remove _ add capitals)
+# add centroids to map, add snd variable to select
+
+
 # Define UI for application that draws a histogram
 ui <- fluidPage(
   
@@ -105,8 +112,12 @@ server <- function(input, output) {
       filter(
         geo == cp_prov_table,
         type_of_crop == cp_crop_table,
-        harvest_disposition == cp_var_table) %>%
-      rename(Province=geo,Crop=type_of_crop,Variable=harvest_disposition)
+        harvest_disposition %in% cp_var_table) %>%
+      rename(Province=geo,Crop=type_of_crop,Variable=harvest_disposition) %>%
+      mutate(
+        Variable = toTitleCase(gsub('_',' ',Variable)),
+        Crop = toTitleCase(gsub('_',' ',Crop))
+      )
 
   })
 
@@ -229,7 +240,11 @@ server <- function(input, output) {
       filter(
         geo %in% farm_prov_table, 
         type_of_crop == farm_crop_table) %>%
-      rename(Province=geo,Crop=type_of_crop,Variable=farm_supply_and_disposition_of_grains)
+      rename(Province=geo,Crop=type_of_crop,Variable=farm_supply_and_disposition_of_grains) %>%
+      mutate(
+        Variable = toTitleCase(gsub('_',' ',Variable)),
+        Crop = toTitleCase(gsub('_',' ',Crop))
+        )
     
   })
   
@@ -320,7 +335,7 @@ server <- function(input, output) {
                   showline = FALSE,
                   showticklabels = FALSE)
     
-    margin <- list(autoexpand = T,
+    margin <- list(autoexpand = F,
                    l = 100,
                    r = 100,
                    t = 110)
@@ -434,9 +449,10 @@ server <- function(input, output) {
       add_trace(x = ~c(farm_plot_reactive_3()$crop_year[1], farm_plot_reactive_3()$crop_year[nrow(farm_plot_reactive_3())]), y = ~c(farm_plot_reactive_3()$value[1], farm_plot_reactive_3()$value[nrow(farm_plot_reactive_3())]), 
                 hoverinfo = 'text', text = ~paste(format(input$farm_crop_plot_3)),
                 type = 'scatter', mode = 'markers', marker = list(color = 'rgba(25,180,126,1)', size = 10), showlegend = FALSE) %>% 
-      layout(title = paste0('<b>Comparing ',input$farm_crop_plot_1,', ',input$farm_crop_plot_2,' and ',input$farm_crop_plot_3,' ',input$farm_var_plot,' in ',input$farm_prov_plot,'</b>'), xaxis = xaxis, yaxis = yaxis, margin = margin,
+      layout(title = paste0('<b>Comparing ',toTitleCase(input$farm_crop_plot_1),', ',toTitleCase(input$farm_crop_plot_2),' and ',toTitleCase(input$farm_crop_plot_3),' ',toTitleCase(gsub('_',' ',input$farm_var_plot)),' in ',input$farm_prov_plot,'</b>'), 
+             xaxis = xaxis, yaxis = yaxis, margin = margin,
              autosize = T,
-             showlegend = T,
+             showlegend = T, legend=list(x=min(farm_plot_reactive_3()$crop_year),y=max(farm_plot_reactive_3()$value,farm_plot_reactive_2()$value,farm_plot_reactive_1()$value)),
              annotations = farm_plot_reactive_1_ann_1) %>%
       layout(annotations = farm_plot_reactive_2_ann_1) %>%
       layout(annotations = farm_plot_reactive_3_ann_1) %>% 
@@ -580,7 +596,7 @@ server <- function(input, output) {
                      
                      sidebarPanel(
                        selectizeInput("cp_map_crop", label = 'Select Fuel Type',
-                                      choices = c('peas','wheat'),
+                                      choices = setNames(grain_area_crop,grain_area_crop_names),
                                       selected = 'wheat'),
                        sliderInput("cp_map_year", label = 'Select Year:',2005, 2018, value=2018,
                                    step=1,
@@ -605,9 +621,10 @@ server <- function(input, output) {
                        selectizeInput("cp_prov_table", label = 'Select Province',
                                       choices = unique(list_of_sets[['grain_area']]$geo), selected='Canada'),
                        selectizeInput("cp_crop_table", label = 'Select Crop',
-                                      choices = unique(list_of_sets[['grain_area']]$type_of_crop), selected='All wheat'),
+                                      choices = setNames(grain_area_crop,grain_area_crop_names), selected='All wheat'),
                        selectizeInput("cp_var_table", label = 'Select Variable',
-                                      choices = unique(list_of_sets[['grain_area']]$harvest_disposition), selected='Production'),
+                                      choices = setNames(grain_area_disp,grain_area_disp_names), 
+                                      multiple=TRUE, selected=c('production','seeded_area','harvested_area','average_yield')),
                        width=3
                      ),
                      
@@ -628,11 +645,11 @@ server <- function(input, output) {
                        selectizeInput("cp_prov_plot", label = 'Select Province',
                                       choices = unique(list_of_sets[['grain_area']]$geo), selected='Canada'),
                        selectizeInput("cp_crop_plot_1", label = 'Select Crop',
-                                      choices = unique(list_of_sets[['grain_area']]$type_of_crop), selected='All wheat'),
+                                      choices = setNames(grain_area_crop,grain_area_crop_names), selected='Wheat'),
                        selectizeInput("cp_crop_plot_2", label = 'Select Crop',
-                                      choices = unique(list_of_sets[['grain_area']]$type_of_crop), selected='Canola'),
+                                      choices = setNames(grain_area_crop,grain_area_crop_names), selected='Canola'),
                        selectizeInput('cp_var_plot', label = 'Select variable',
-                                      choices = unique(list_of_sets[['grain_area']]$harvest_disposition), selected = 'Production'),
+                                      choices = setNames(grain_area_disp,grain_area_disp_names), selected = 'Production'),
                        width=3
                      ),
                      
@@ -671,7 +688,7 @@ server <- function(input, output) {
                      
                      sidebarPanel(
                        selectizeInput("farm_map_crop", label = 'Select Fuel Type',
-                                      choices = c('barley','canola'),
+                                      choices = setNames(farm_snd_crop,farm_snd_crop_names),
                                       selected = 'barley'),
                        sliderInput("farm_map_year", label = 'Select Year:',2005, 2018, value=2018,
                                    step=1,
@@ -694,9 +711,9 @@ server <- function(input, output) {
                      
                      sidebarPanel(
                        selectizeInput("farm_prov_table", label = 'Select Province',
-                                      choices = unique(list_of_sets[['farm_snd']]$geo), , multiple = TRUE, selected='Canada'),
+                                      choices = unique(list_of_sets[['farm_snd']]$geo), multiple = TRUE, selected='Canada'),
                        selectizeInput("farm_crop_table", label = 'Select Crop',
-                                      choices = unique(list_of_sets[['farm_snd']]$type_of_crop), selected='All wheat'),
+                                      choices = setNames(farm_snd_crop,farm_snd_crop_names), selected='All wheat'),
                        width=3
                      ),
                      
@@ -717,19 +734,19 @@ server <- function(input, output) {
                        selectizeInput("farm_prov_plot", label = 'Select Province',
                                       choices = unique(list_of_sets[['farm_snd']]$geo), selected='Canada'),
                        selectizeInput("farm_crop_plot_1", label = 'Select Crop',
-                                      choices = unique(list_of_sets[['farm_snd']]$type_of_crop), selected='All wheat'),
+                                      choices = setNames(farm_snd_crop,farm_snd_crop_names), selected='wheat'),
                        selectizeInput("farm_crop_plot_2", label = 'Select Crop',
-                                     choices = unique(list_of_sets[['farm_snd']]$type_of_crop), selected='Canola'),
+                                     choices = setNames(farm_snd_crop,farm_snd_crop_names), selected='canola'),
                        selectizeInput("farm_crop_plot_3", label = 'Select Crop',
-                                      choices = unique(list_of_sets[['farm_snd']]$type_of_crop), selected='Barley'),
+                                      choices = setNames(farm_snd_crop,farm_snd_crop_names), selected='barley'),
                        selectizeInput('farm_var_plot', label = 'Select variable',
-                                      choices = unique(list_of_sets[['farm_snd']]$farm_supply_and_disposition_of_grains), selected = 'Production'),
+                                      choices = setNames(farm_snd_disp,farm_snd_disp_names), selected = 'Production'),
                        width=3
                      ),
                      
                      mainPanel(
                        fluidRow(
-                         plotlyOutput("farm_plot", height = '550px')
+                         plotlyOutput("farm_plot", height = '450px')
                        ),
                        width=8
                      )

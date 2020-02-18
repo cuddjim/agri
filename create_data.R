@@ -1,7 +1,7 @@
 
 ## load libraries
 library(cansim); library(tidyverse); library(janitor); library(rgeos); library(rgdal)
-library(stringi); library(magrittr)
+library(stringi); library(magrittr); library(tools)
 
 ## create dictionary
 names_of_sets = c('grain_area', 'can_snd', 'farm_snd')
@@ -64,7 +64,7 @@ rbind(
 
 list_of_sets[['farm_snd']] %<>%
   filter(
-    farm_supply_and_disposition_of_grains %in% c("Production", "Deliveries", "Total supplies") &
+    farm_supply_and_disposition_of_grains %in% c("Production", "Deliveries", "Total supplies",'Beginning stocks','Seed requirements') &
       type_of_crop %in% c('Barley','Oats','Wheat, all','Canola','Peas, dry','Rye, fall remaining','Lentils','Flaxseed','Mustard seed')
   ) %>%
   mutate(
@@ -73,3 +73,14 @@ list_of_sets[['farm_snd']] %<>%
     farm_supply_and_disposition_of_grains = gsub(" ","_",tolower(farm_supply_and_disposition_of_grains))
   )
 
+grain_area_disp = unique(list_of_sets[['grain_area']]$harvest_disposition)
+grain_area_disp_names = toTitleCase(gsub('_', ' ',grain_area_disp))
+
+grain_area_crop = unique(list_of_sets[['grain_area']]$type_of_crop)
+grain_area_crop_names = toTitleCase(gsub('_', ' ',grain_area_crop))
+
+farm_snd_disp = unique(list_of_sets[['farm_snd']]$farm_supply_and_disposition_of_grains)
+farm_snd_disp_names = toTitleCase(gsub('_', ' ',farm_snd_disp))
+
+farm_snd_crop = unique(list_of_sets[['farm_snd']]$type_of_crop)
+farm_snd_crop_names = toTitleCase(gsub('_', ' ',farm_snd_crop))
