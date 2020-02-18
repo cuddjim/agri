@@ -2,26 +2,25 @@
 library(shiny); library(shiny.i18n)
 library(leaflet); library(plotly)
 library(DT); library(shinyWidgets)
-
-sad_map = readOGR('CropsSADRegions_2017_Gen/CropsSADRegions_2017_Gen.shp',stringsAsFactors = FALSE)
-sad_map@data$PRSADReg=as.numeric(sad_map@data$PRSADReg)
-
+library(shinythemes)
+?shinythemes
 # Define UI for application that draws a histogram
 ui <- fluidPage(
   
-  tags$style(HTML("
-      .navbar .navbar-nav {float: right; 
-                  color: #ff3368; 
-                  font-size: 20px; 
-                  background-color: #FFFF00 ; } 
-                  .navbar.navbar-default.navbar-static-top{ color: #ff3368; 
-                  font-size: 20px; 
-                  background-color: #FFFF00 ;}
-                  .navbar .navbar-header {float: left; } 
-                  .navbar-default .navbar-brand { color: #ff3368; 
-                  font-size: 38px; 
-                  background-color: #FFFF00 ;} 
-                  ")),
+  theme = shinytheme("flatly"),
+  # tags$style(HTML("
+  #     .navbar .navbar-nav {float: right; 
+  #                 color: #ff3368; 
+  #                 font-size: 20px; 
+  #                 background-color: #FFFF00 ; } 
+  #                 .navbar.navbar-default.navbar-static-top{ color: #ff3368; 
+  #                 font-size: 20px; 
+  #                 background-color: #FFFF00 ;}
+  #                 .navbar .navbar-header {float: left; } 
+  #                 .navbar-default .navbar-brand { color: #ff3368; 
+  #                 font-size: 38px; 
+  #                 background-color: #FFFF00 ;} 
+  #                 ")),
   tags$script("$(\"input:radio[name='selected_language'][value='fr']\").parent().css('background-color', '#FFFFFF');"),
   uiOutput('select_language'),
   uiOutput('page_content')
@@ -54,28 +53,31 @@ server <- function(input, output) {
   
   
   ## crop production tab
-
+  
   # map
   cp_map_reactive <- reactive({
-
-    # min_year = min(input$year); max_year = max(input$year)
-    # farm_map_var = input$farm_map_var
-    # min_emissions = str_c(farm_map_var,'_emission_',min_year); max_emissions = str_c(farm_map_var,'_emission_',max_year)
-    # min_outputs = str_c(farm_map_var,'_output_',min_year); max_outputs = str_c(farm_map_var,'_output_',max_year)
-    #
-    # prov_map@data %<>%
-    #   mutate(emissions=round(rowMeans(select(.,min_emissions:max_emissions),na.rm=TRUE),0),
-    #          outputs=round(rowMeans(select(.,min_outputs:max_outputs),na.rm=TRUE),0)) %>%
-    #   mutate(scaled_outputs = log(1+outputs)^2.5) %>%
-    #   mutate(mean_output = mean(scaled_outputs,na.rm=TRUE)) %>%
-    #   mutate(outputs_1=23*scaled_outputs/mean_output)
-
+    
+    min_year = min(input$cp_map_year); max_year = max(input$cp_map_year)
+    cp_map_crop = input$cp_map_crop
+    min_map_disp_1 = str_c(cp_map_crop,'_production_',min_year); max_map_disp_1 = str_c(cp_map_crop,'_production_',max_year)
+    min_map_disp_2 = str_c(cp_map_crop,'_harvested_area_',min_year); max_map_disp_2 = str_c(cp_map_crop,'_harvested_area_',max_year)
+    
+    sad_map@data %<>% 
+      left_join(list_of_sets[['grain_area']] %>%
+                  unite(variable,c('type_of_crop','harvest_disposition','ref_date')) %>%
+                  select(variable,value,sad_code,geo) %>%
+                  spread(variable,value) %>%
+                  mutate(sad_code = as.character(sad_code)), by=c('PRSADReg'='sad_code')
+      ) %>%
+      mutate(disp_1=round(rowMeans(select(.,min_map_disp_1:max_map_disp_1),na.rm=TRUE),0),
+             disp_2=round(rowMeans(select(.,min_map_disp_2:max_map_disp_2),na.rm=TRUE),0))
+    
     sad_map
-
+    
   })
-
+  
   output$cp_map <- renderLeaflet({
-
+    
     leaflet(options = leafletOptions(minZoom = 4, maxZoom = 2,
                                      attributionControl=FALSE)) %>%
       setView(lng = -98.4, lat = 58.2, zoom = 4) %>%
@@ -84,11 +86,11 @@ server <- function(input, output) {
       clearShapes() %>%
       clearControls() %>%
       addPolygons(data = cp_map_reactive(),
-                  fillColor = ~colorBin(c("#E1F5C4","#EDE574","#F9D423","#FC913A","#FF4E50"), PRSADReg, 5)(PRSADReg),
+                  fillColor = ~colorBin(c("#E1F5C4","#EDE574","#F9D423","#FC913A","#FF4E50"), disp_1, 5)(disp_1),
                   color = "#BDBDC3",
                   fillOpacity = 0.7,
                   weight = 4)
-
+    
   })
 
   # data table
@@ -177,17 +179,20 @@ server <- function(input, output) {
   # map
   farm_map_reactive <- reactive({
     
-    # min_year = min(input$year); max_year = max(input$year)
-    # farm_map_var = input$farm_map_var
-    # min_emissions = str_c(farm_map_var,'_emission_',min_year); max_emissions = str_c(farm_map_var,'_emission_',max_year)
-    # min_outputs = str_c(farm_map_var,'_output_',min_year); max_outputs = str_c(farm_map_var,'_output_',max_year)
-    # 
-    # prov_map@data %<>% 
-    #   mutate(emissions=round(rowMeans(select(.,min_emissions:max_emissions),na.rm=TRUE),0),
-    #          outputs=round(rowMeans(select(.,min_outputs:max_outputs),na.rm=TRUE),0)) %>% 
-    #   mutate(scaled_outputs = log(1+outputs)^2.5) %>%
-    #   mutate(mean_output = mean(scaled_outputs,na.rm=TRUE)) %>%
-    #   mutate(outputs_1=23*scaled_outputs/mean_output)
+    min_year = min(input$farm_map_year); max_year = max(input$farm_map_year)
+    farm_map_crop = input$farm_map_crop
+    min_map_disp_1 = str_c(farm_map_crop,'_production_',min_year); max_map_disp_1 = str_c(farm_map_crop,'_production_',max_year)
+    min_map_disp_2 = str_c(farm_map_crop,'_harvested_area_',min_year); max_map_disp_2 = str_c(farm_map_crop,'_harvested_area_',max_year)
+    
+    prov_map@data %<>% 
+      left_join(list_of_sets[['grain_area']] %>%
+                  unite(variable,c('type_of_crop','harvest_disposition','ref_date')) %>%
+                  select(variable,value,sad_code,geo) %>%
+                  spread(variable,value) %>%
+                  mutate(sad_code = as.character(sad_code)), by=c('PRSADReg'='sad_code')
+      ) %>%
+      mutate(disp_1=round(rowMeans(select(.,min_map_disp_1:max_map_disp_1),na.rm=TRUE),0),
+             disp_2=round(rowMeans(select(.,min_map_disp_2:max_map_disp_2),na.rm=TRUE),0))
     
     sad_map
     
@@ -203,7 +208,7 @@ server <- function(input, output) {
       clearShapes() %>%
       clearControls() %>%
       addPolygons(data = farm_map_reactive(),
-                  fillColor = ~colorBin(c("#E1F5C4","#EDE574","#F9D423","#FC913A","#FF4E50"), PRSADReg, 5)(PRSADReg),
+                  fillColor = ~colorBin(c("#E1F5C4","#EDE574","#F9D423","#FC913A","#FF4E50"), disp_1, 5)(disp_1),
                   color = "#BDBDC3",
                   fillOpacity = 0.7,
                   weight = 4)
@@ -573,9 +578,9 @@ server <- function(input, output) {
                      'Map',
                      
                      sidebarPanel(
-                       selectizeInput("cp_map_var", label = 'Select Fuel Type',
-                                      choices = c('a','b'),
-                                      selected = 'a'),
+                       selectizeInput("cp_map_crop", label = 'Select Fuel Type',
+                                      choices = c('peas','wheat'),
+                                      selected = 'wheat'),
                        sliderInput("cp_map_year", label = 'Select Year:',2005, 2018, value=2018,
                                    step=1,
                                    animate=TRUE,

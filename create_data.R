@@ -58,10 +58,10 @@ rbind(
 
 ## create sad map
 sad_map = readOGR('CropsSADRegions_2017_Gen/CropsSADRegions_2017_Gen.shp',stringsAsFactors = FALSE)
-sad_map@data %<>% left_join(list_of_sets[['grain_area']] %>%
-                              unite(variable,c('type_of_crop','harvest_disposition','ref_date')) %>%
-                              select(variable,value,sad_code,geo) %>%
-                              spread(variable,value) %>%
-                              mutate(sad_code = as.character(sad_code)), by=c('PRSADReg'='sad_code'))
-
-
+list_of_sets[['farm_snd']] %<>%
+  mutate(
+    type_of_crop=gsub("(.*),.*", "\\1", tolower(type_of_crop)),
+    harvest_disposition = str_replace(harvest_disposition, " \\(.*\\)", ""),
+    harvest_disposition = gsub(" ","_",tolower(harvest_disposition))
+  )
+names(list_of_sets[['farm_snd']])
