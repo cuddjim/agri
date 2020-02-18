@@ -7,7 +7,6 @@ library(shinythemes)
 # 1 create plots for tabs 1 and 3
 # add footnotes to tabs 1,2 and 3
 # add translation for tabs + snd names, etc
-# make names nice (remove _ add capitals)
 # add centroids to map, add snd variable to select
 
 
@@ -77,13 +76,18 @@ server <- function(input, output) {
                   mutate(sad_code = as.character(sad_code)), by=c('PRSADReg'='sad_code')
       ) %>%
       mutate(disp_1=round(rowMeans(select(.,min_map_disp_1:max_map_disp_1),na.rm=TRUE),0),
-             disp_2=round(rowMeans(select(.,min_map_disp_2:max_map_disp_2),na.rm=TRUE),0))
+             disp_2=round(rowMeans(select(.,min_map_disp_2:max_map_disp_2),na.rm=TRUE),0),
+             disp_1=ifelse(is.na(disp_1),0,disp_1),
+             disp_2=ifelse(is.na(disp_2),0,disp_2))
     
     sad_map
+    
     
   })
   
   output$cp_map <- renderLeaflet({
+    
+    color_pal <- colorNumeric(palette = "RdYlBu", domain = 0:max_map_disp_1, reverse = TRUE)
     
     leaflet(options = leafletOptions(minZoom = 4, maxZoom = 2,
                                      attributionControl=FALSE)) %>%
@@ -93,10 +97,13 @@ server <- function(input, output) {
       clearShapes() %>%
       clearControls() %>%
       addPolygons(data = cp_map_reactive(),
-                  fillColor = ~colorBin(c("#E1F5C4","#EDE574","#F9D423","#FC913A","#FF4E50"), disp_1, 5)(disp_1),
+                  fillColor = ~colorBin(c("RdYlBu"), disp_1, 5)(disp_1),
                   color = "#BDBDC3",
                   fillOpacity = 0.7,
-                  weight = 4)
+                  weight = 4) %>% 
+      addLegend("bottomleft", pal = color_pal, values = ~disp_1,
+                title = "Production",
+                opacity = 0.8)
     
   })
 
@@ -478,7 +485,7 @@ server <- function(input, output) {
       filter(
         geo == can_prov_table,
         type_of_crop == can_crop_table,
-        supply_and_disposition_of_grains == can_var_table) %>%
+        supply_and_disposition_of_grains %in% can_var_table) %>%
       rename(Province=geo,Crop=type_of_crop,Variable=supply_and_disposition_of_grains)
     
   })
@@ -784,7 +791,8 @@ server <- function(input, output) {
                        selectizeInput("can_crop_table", label = 'Select Crop',
                                       choices = unique(list_of_sets[['can_snd']]$type_of_crop), selected='All wheat'),
                        selectizeInput("can_var_table", label = 'Select Variable',
-                                      choices = unique(list_of_sets[['can_snd']]$supply_and_disposition_of_grains), selected='Production'),
+                                      choices = unique(list_of_sets[['can_snd']]$supply_and_disposition_of_grains), multiple = T, selected=c('Total supplies','Production','Total beginning stocks','Imports',
+                                                                                                                                             'Total disposition','Total exports','Total ending stocks')),
                        width=3
                      ),
                      

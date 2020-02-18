@@ -53,9 +53,10 @@ rbind(
   mutate(sad_code = ifelse(is.na(sad_code),parse_number(geo),sad_code)) %>%
   filter(
     harvest_disposition %in% c("Seeded area (acres)", "Harvested area (acres)", "Average yield (bushels per acre)", "Production (metric tonnes)") &
-    type_of_crop %in% c('Barley','Oats','Wheat, all','Canola','Peas, dry','Rye, fall remaining','Lentils','Flaxseed','Mustard seed')
+    type_of_crop %in% c('Barley','Oats','Wheat, all','Canola','Peas, dry','Rye, fall remaining','Lentils','Flaxseed')
     ) %>%
   mutate(
+    value=replace_na(value,0),
     type_of_crop=gsub("(.*),.*", "\\1", tolower(type_of_crop)),
     harvest_disposition = str_replace(harvest_disposition, " \\(.*\\)", ""),
     harvest_disposition = gsub(" ","_",tolower(harvest_disposition))
@@ -65,7 +66,7 @@ rbind(
 list_of_sets[['farm_snd']] %<>%
   filter(
     farm_supply_and_disposition_of_grains %in% c("Production", "Deliveries", "Total supplies",'Beginning stocks','Seed requirements') &
-      type_of_crop %in% c('Barley','Oats','Wheat, all','Canola','Peas, dry','Rye, fall remaining','Lentils','Flaxseed','Mustard seed')
+      type_of_crop %in% c('Barley','Oats','Wheat, all','Canola','Peas, dry','Rye, fall remaining','Lentils','Flaxseed')
   ) %>%
   mutate(
     type_of_crop=gsub("(.*),.*", "\\1", tolower(type_of_crop)),
@@ -84,3 +85,6 @@ farm_snd_disp_names = toTitleCase(gsub('_', ' ',farm_snd_disp))
 
 farm_snd_crop = unique(list_of_sets[['farm_snd']]$type_of_crop)
 farm_snd_crop_names = toTitleCase(gsub('_', ' ',farm_snd_crop))
+
+
+colSums(is.na(list_of_sets[['grain_area']]))
