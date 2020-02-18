@@ -2,7 +2,7 @@ library(cansim);library(tidyverse);library(janitor)
 
 pids <- c('32100002','32100013','32100014','32100015','32100359')
 
-sad_conversion <- read.csv("C:/Users/lab/Documents/GitHub/agri/sad_conversion.csv")
+sad_conversion <- read.csv("C:/Users/Jimmy/OneDrive/Documents/GitHub/agri/sad_conversion.csv")
 
 for (pid in pids) {
   temp = get_cansim_ndm(paste0(pid)) %>% clean_names()
