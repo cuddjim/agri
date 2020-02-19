@@ -48,9 +48,7 @@ server <- function(input, output) {
     }
     
     else {
-      
       translator$set_translation_language('fr')
-      
     }
     
     translator
@@ -63,10 +61,10 @@ server <- function(input, output) {
   # map
   cp_map_reactive <- reactive({
     
-    min_year = min(input$cp_map_year); max_year = max(input$cp_map_year)
+    cp_year = input$cp_map_year
     cp_map_crop = input$cp_map_crop
-    min_map_disp_1 = str_c(cp_map_crop,'_production_',min_year); max_map_disp_1 = str_c(cp_map_crop,'_production_',max_year)
-    min_map_disp_2 = str_c(cp_map_crop,'_harvested_area_',min_year); max_map_disp_2 = str_c(cp_map_crop,'_harvested_area_',max_year)
+    map_disp_1 = str_c(cp_map_crop,'_production_',cp_year)
+    map_disp_2 = str_c(cp_map_crop,'_harvested_area_',cp_year)
     
     sad_map@data %<>% 
       left_join(list_of_sets[['grain_area']] %>%
@@ -75,10 +73,8 @@ server <- function(input, output) {
                   spread(variable,value) %>%
                   mutate(sad_code = as.character(sad_code)), by=c('PRSADReg'='sad_code')
       ) %>%
-      mutate(disp_1=round(rowMeans(select(.,min_map_disp_1:max_map_disp_1),na.rm=TRUE),0),
-             disp_2=round(rowMeans(select(.,min_map_disp_2:max_map_disp_2),na.rm=TRUE),0),
-             disp_1=ifelse(is.na(disp_1),0,disp_1),
-             disp_2=ifelse(is.na(disp_2),0,disp_2))
+      rename(disp_1={{map_disp_1}}) %>%
+      mutate(disp_1=replace_na(disp_1,0))
     
     sad_map
     
@@ -87,7 +83,7 @@ server <- function(input, output) {
   
   output$cp_map <- renderLeaflet({
     
-    color_pal <- colorNumeric(palette = "RdYlBu", domain = 0:max_map_disp_1, reverse = TRUE)
+    color_pal <- colorNumeric(palette = "RdYlBu", domain = cp_map_reactive()$disp_1, reverse = FALSE)
     
     leaflet(options = leafletOptions(minZoom = 4, maxZoom = 2,
                                      attributionControl=FALSE)) %>%
@@ -100,8 +96,8 @@ server <- function(input, output) {
                   fillColor = ~colorBin(c("RdYlBu"), disp_1, 5)(disp_1),
                   color = "#BDBDC3",
                   fillOpacity = 0.7,
-                  weight = 4) %>% 
-      addLegend("bottomleft", pal = color_pal, values = ~disp_1,
+                  weight = 4) %>%
+      addLegend(data = cp_map_reactive(), "bottomleft", pal = color_pal, values = ~disp_1,
                 title = "Production",
                 opacity = 0.8)
     
@@ -231,7 +227,10 @@ server <- function(input, output) {
                   fillColor = ~colorBin(c("#E1F5C4","#EDE574","#F9D423","#FC913A","#FF4E50"), snd_1, 5)(snd_1),
                   color = "#BDBDC3",
                   fillOpacity = 0.7,
-                  weight = 4)
+                  weight = 4) %>%
+      addLegend(data = farm_map_reactive(), "bottomleft", pal = color_pal, values = ~disp_1,
+                title = "Production",
+                opacity = 0.8)
     
   })
   
@@ -354,7 +353,7 @@ server <- function(input, output) {
       y = farm_plot_reactive_1()$value[1],
       xanchor = 'right',
       yanchor = 'middle',
-      text = ~paste(format(farm_plot_reactive_1()$value[1],big.mark = ','),'tonnes'),
+      text = ~paste(format_lang(farm_plot_reactive_1()$value[1],input$selected_language),'tonnes'),
       font = list(family = 'Arial',
                   size = 16,
                   color = 'rgba(67,67,67,1)'),
@@ -367,7 +366,7 @@ server <- function(input, output) {
       y = farm_plot_reactive_1()$value[nrow(farm_plot_reactive_1())],
       xanchor = 'left',
       yanchor = 'middle',
-      text = ~paste(format(farm_plot_reactive_1()$value[nrow(farm_plot_reactive_1())],big.mark = ','),'tonnes'),
+      text = ~paste(format_lang(farm_plot_reactive_1()$value[nrow(farm_plot_reactive_1())],input$selected_language),'tonnes'),
       font = list(family = 'Arial',
                   size = 16,
                   color = 'rgba(67,67,67,1)'),
@@ -561,7 +560,7 @@ server <- function(input, output) {
       
       tabPanel(
         
-        'Language',
+        tr()$t('Language'),
         
         column(switchInput(
           inputId = "selected_language",
@@ -586,7 +585,7 @@ server <- function(input, output) {
   output$page_content <- renderUI({
     
     navbarPage(title = div(span(img(src = "wheat2.png"),
-                                "Crops and grains in Canada",
+                                tr()$t("Crops and grains in Canada"),
                                 style = "position: relative; top: 80%; transform: translateY(10%);")),
                  
                tabPanel(
@@ -602,10 +601,10 @@ server <- function(input, output) {
                      'Map',
                      
                      sidebarPanel(
-                       selectizeInput("cp_map_crop", label = 'Select Fuel Type',
+                       selectizeInput("cp_map_crop", label = tr()$t('Select Fuel Type'),
                                       choices = setNames(grain_area_crop,grain_area_crop_names),
                                       selected = 'wheat'),
-                       sliderInput("cp_map_year", label = 'Select Year:',2005, 2018, value=2018,
+                       sliderInput("cp_map_year", label = tr()$t('Select Year:'),2005, 2018, value=2018,
                                    step=1,
                                    animate=TRUE,
                                    sep = ""),
@@ -622,14 +621,14 @@ server <- function(input, output) {
                    
                    tabPanel(
                      
-                     'Data table',
+                     tr()$t('Data Table'),
                      
                      sidebarPanel(
-                       selectizeInput("cp_prov_table", label = 'Select Province',
+                       selectizeInput("cp_prov_table", label = tr()$t('Select Province'),
                                       choices = unique(list_of_sets[['grain_area']]$geo), selected='Canada'),
-                       selectizeInput("cp_crop_table", label = 'Select Crop',
+                       selectizeInput("cp_crop_table", label = tr()$t('Select Crop'),
                                       choices = setNames(grain_area_crop,grain_area_crop_names), selected='All wheat'),
-                       selectizeInput("cp_var_table", label = 'Select Variable',
+                       selectizeInput("cp_var_table", label = tr()$t('Select Variable'),
                                       choices = setNames(grain_area_disp,grain_area_disp_names), 
                                       multiple=TRUE, selected=c('production','seeded_area','harvested_area','average_yield')),
                        width=3
@@ -646,16 +645,16 @@ server <- function(input, output) {
                    
                    tabPanel(
                      
-                     'Graphs',
+                     tr()$t('Graphs'),
                      
                      sidebarPanel(
-                       selectizeInput("cp_prov_plot", label = 'Select Province',
+                       selectizeInput("cp_prov_plot", label = tr()$t('Select Province'),
                                       choices = unique(list_of_sets[['grain_area']]$geo), selected='Canada'),
-                       selectizeInput("cp_crop_plot_1", label = 'Select Crop',
+                       selectizeInput("cp_crop_plot_1", label = tr()$t('Select Crop'),
                                       choices = setNames(grain_area_crop,grain_area_crop_names), selected='Wheat'),
-                       selectizeInput("cp_crop_plot_2", label = 'Select Crop',
+                       selectizeInput("cp_crop_plot_2", label = tr()$t('Select Crop'),
                                       choices = setNames(grain_area_crop,grain_area_crop_names), selected='Canola'),
-                       selectizeInput('cp_var_plot', label = 'Select variable',
+                       selectizeInput('cp_var_plot', label = tr()$t('Select variable'),
                                       choices = setNames(grain_area_disp,grain_area_disp_names), selected = 'Production'),
                        width=3
                      ),
@@ -694,10 +693,10 @@ server <- function(input, output) {
                      'Map',
                      
                      sidebarPanel(
-                       selectizeInput("farm_map_crop", label = 'Select Fuel Type',
-                                      choices = setNames(farm_snd_crop,farm_snd_crop_names),
+                       selectizeInput("farm_map_crop", label = tr()$t('Select Fuel Type'),
+                                      choices = tr()$t(setNames(farm_snd_crop,farm_snd_crop_names)),
                                       selected = 'barley'),
-                       sliderInput("farm_map_year", label = 'Select Year:',2005, 2018, value=2018,
+                       sliderInput("farm_map_year", label = tr()$t('Select Year:'),2005, 2018, value=2018,
                                    step=1,
                                    animate=TRUE,
                                    sep = ""),
@@ -717,9 +716,9 @@ server <- function(input, output) {
                      'Data table',
                      
                      sidebarPanel(
-                       selectizeInput("farm_prov_table", label = 'Select Province',
+                       selectizeInput("farm_prov_table", label = tr()$t('Select Province'),
                                       choices = unique(list_of_sets[['farm_snd']]$geo), multiple = TRUE, selected='Canada'),
-                       selectizeInput("farm_crop_table", label = 'Select Crop',
+                       selectizeInput("farm_crop_table", label = tr()$t('Select Crop'),
                                       choices = setNames(farm_snd_crop,farm_snd_crop_names), selected='All wheat'),
                        width=3
                      ),
@@ -738,15 +737,15 @@ server <- function(input, output) {
                      'Graphs',
                      
                      sidebarPanel(
-                       selectizeInput("farm_prov_plot", label = 'Select Province',
+                       selectizeInput("farm_prov_plot", label = tr()$t('Select Province'),
                                       choices = unique(list_of_sets[['farm_snd']]$geo), selected='Canada'),
-                       selectizeInput("farm_crop_plot_1", label = 'Select Crop',
+                       selectizeInput("farm_crop_plot_1", label = tr()$t('Select Crop'),
                                       choices = setNames(farm_snd_crop,farm_snd_crop_names), selected='wheat'),
-                       selectizeInput("farm_crop_plot_2", label = 'Select Crop',
+                       selectizeInput("farm_crop_plot_2", label = tr()$t('Select Crop'),
                                      choices = setNames(farm_snd_crop,farm_snd_crop_names), selected='canola'),
-                       selectizeInput("farm_crop_plot_3", label = 'Select Crop',
+                       selectizeInput("farm_crop_plot_3", label = tr()$t('Select Crop'),
                                       choices = setNames(farm_snd_crop,farm_snd_crop_names), selected='barley'),
-                       selectizeInput('farm_var_plot', label = 'Select variable',
+                       selectizeInput('farm_var_plot', label = tr()$t('Select Variable'),
                                       choices = setNames(farm_snd_disp,farm_snd_disp_names), selected = 'Production'),
                        width=3
                      ),
@@ -786,11 +785,11 @@ server <- function(input, output) {
                      'Data table',
                      
                      sidebarPanel(
-                       selectizeInput("can_prov_table", label = 'Select Province',
+                       selectizeInput("can_prov_table", label = tr()$t('Select Province'),
                                       choices = unique(list_of_sets[['can_snd']]$geo), selected='Canada'),
-                       selectizeInput("can_crop_table", label = 'Select Crop',
+                       selectizeInput("can_crop_table", label = tr()$t('Select Crop'),
                                       choices = unique(list_of_sets[['can_snd']]$type_of_crop), selected='All wheat'),
-                       selectizeInput("can_var_table", label = 'Select Variable',
+                       selectizeInput("can_var_table", label = tr()$t('Select Variable'),
                                       choices = unique(list_of_sets[['can_snd']]$supply_and_disposition_of_grains), multiple = T, selected=c('Total supplies','Production','Total beginning stocks','Imports',
                                                                                                                                              'Total disposition','Total exports','Total ending stocks')),
                        width=3
@@ -810,13 +809,13 @@ server <- function(input, output) {
                      'Graphs',
                      
                      sidebarPanel(
-                       selectizeInput("can_prov_plot", label = 'Select Province',
+                       selectizeInput("can_prov_plot", label = tr()$t('Select Province'),
                                       choices = unique(list_of_sets[['can_snd']]$geo), selected='Canada'),
-                       selectizeInput("can_crop_plot_1", label = 'Select Crop',
+                       selectizeInput("can_crop_plot_1", label = tr()$t('Select Crop'),
                                       choices = unique(list_of_sets[['can_snd']]$type_of_crop), selected='All wheat'),
-                       selectizeInput("can_crop_plot_2", label = 'Select Crop',
+                       selectizeInput("can_crop_plot_2", label = tr()$t('Select Crop'),
                                       choices = unique(list_of_sets[['can_snd']]$type_of_crop), selected='Canola'),
-                       selectizeInput('can_var_plot', label = 'Select variable',
+                       selectizeInput('can_var_plot', label = tr()$t('Select Variable'),
                                       choices = unique(list_of_sets[['can_snd']]$supply_and_disposition_of_grains), selected = 'Production'),
                        width=3
                      ),
