@@ -39,7 +39,7 @@ server <- function(input, output) {
     
     selected = input$selected_language
     
-    if (length(selected) > 0 && selected == TRUE) {
+    if (length(selected) > 0 && selected == 'en') {
       
       translator$set_translation_language('en')
       
@@ -81,7 +81,7 @@ server <- function(input, output) {
   
   output$cp_map <- renderLeaflet({
     
-    color_pal <- colorNumeric(palette = "RdYlBu", domain = cp_map_reactive()$disp_1, reverse = FALSE)
+    color_pal <- colorNumeric(palette = "YlOrRd", domain = cp_map_reactive()$disp_1, reverse = FALSE)
     
     leaflet(options = leafletOptions(minZoom = 4, maxZoom = 2,
                                      attributionControl=FALSE)) %>%
@@ -91,7 +91,7 @@ server <- function(input, output) {
       clearShapes() %>%
       clearControls() %>%
       addPolygons(data = cp_map_reactive(),
-                  fillColor = ~colorBin(c("RdYlBu"), disp_1, 5)(disp_1),
+                  fillColor = ~colorBin(c("YlOrRd"), disp_1, 5)(disp_1),
                   color = "#BDBDC3",
                   fillOpacity = 0.7,
                   weight = 4) %>%
@@ -362,7 +362,7 @@ server <- function(input, output) {
   
   output$farm_map <- renderLeaflet({
     
-    color_pal <- colorNumeric(palette = "RdYlBu", domain = farm_map_reactive()$snd_1, reverse = FALSE)
+    color_pal <- colorNumeric(palette = "YlOrRd", domain = farm_map_reactive()$snd_1, reverse = FALSE)
     
     leaflet(options = leafletOptions(minZoom = 4, maxZoom = 2,
                                      attributionControl=FALSE)) %>%
@@ -465,7 +465,6 @@ server <- function(input, output) {
   })
   
   
-  
   output$farm_plot <- renderPlotly({
     
     xaxis <- list(title = "",
@@ -527,7 +526,7 @@ server <- function(input, output) {
       y = farm_plot_reactive_2()$value[1],
       xanchor = 'right',
       yanchor = 'middle',
-      text = ~paste(format(farm_plot_reactive_2()$value[1],big.mark = ','),'tonnes'),
+      text = ~paste(format_lang(farm_plot_reactive_2()$value[1],input$selected_language),'tonnes'),
       font = list(family = 'Arial',
                   size = 16,
                   color = 'rgba(67,67,67,1)'),
@@ -540,7 +539,7 @@ server <- function(input, output) {
       y = farm_plot_reactive_2()$value[nrow(farm_plot_reactive_2())],
       xanchor = 'left',
       yanchor = 'middle',
-      text = ~paste(format(farm_plot_reactive_2()$value[nrow(farm_plot_reactive_2())],big.mark = ','),'tonnes'),
+      text = ~paste(format_lang(farm_plot_reactive_2()$value[nrow(farm_plot_reactive_2())],input$selected_language),'tonnes'),
       font = list(family = 'Arial',
                   size = 16,
                   color = 'rgba(67,67,67,1)'),
@@ -553,7 +552,7 @@ server <- function(input, output) {
       y = farm_plot_reactive_3()$value[1],
       xanchor = 'right',
       yanchor = 'middle',
-      text = ~paste(format(farm_plot_reactive_3()$value[1],big.mark = ','),'tonnes'),
+      text = ~paste(format_lang(farm_plot_reactive_3()$value[1],input$selected_language),'tonnes'),
       font = list(family = 'Arial',
                   size = 16,
                   color = 'rgba(67,67,67,1)'),
@@ -566,7 +565,7 @@ server <- function(input, output) {
       y = farm_plot_reactive_3()$value[nrow(farm_plot_reactive_3())],
       xanchor = 'left',
       yanchor = 'middle',
-      text = ~paste(format(farm_plot_reactive_3()$value[nrow(farm_plot_reactive_3())],big.mark = ','),'tonnes'),
+      text = ~paste(format_lang(farm_plot_reactive_3()$value[nrow(farm_plot_reactive_3())],input$selected_language),'tonnes'),
       font = list(family = 'Arial',
                   size = 16,
                   color = 'rgba(67,67,67,1)'),
@@ -741,7 +740,7 @@ server <- function(input, output) {
       y = can_plot_reactive_2()$value[1],
       xanchor = 'right',
       yanchor = 'middle',
-      text = ~paste(format(can_plot_reactive_2()$value[1],big.mark = ','),'tonnes'),
+      text =~paste(format_lang(can_plot_reactive_2()$value[1],input$selected_language),'tonnes'),
       font = list(family = 'Arial',
                   size = 16,
                   color = 'rgba(67,67,67,1)'),
@@ -754,7 +753,7 @@ server <- function(input, output) {
       y = can_plot_reactive_2()$value[nrow(can_plot_reactive_2())],
       xanchor = 'left',
       yanchor = 'middle',
-      text = ~paste(format(can_plot_reactive_2()$value[nrow(can_plot_reactive_2())],big.mark = ','),'tonnes'),
+      text = ~paste(format_lang(can_plot_reactive_2()$value[nrow(can_plot_reactive_2())],input$selected_language),'tonnes'),
       font = list(family = 'Arial',
                   size = 16,
                   color = 'rgba(67,67,67,1)'),
@@ -805,17 +804,10 @@ server <- function(input, output) {
       
       tabPanel(
         
-        tr()$t('Language'),
+        'Language',
         
-        column(switchInput(
-          inputId = "selected_language",
-          value = TRUE,
-          onLabel = 'FR',
-          offLabel = 'EN',
-          onStatus = '#000000',
-          offStatus = '#FFFFFF',
-          size='mini'
-        ), width=4,offset=10),
+        column(radioButtons(inputId = 'selected_language', label ='',
+                            choices = c('English' = 'en', "Francais" = 'fr'),selected = 'en'), width=4,offset=10),
         icon = NULL
         
       )
@@ -840,7 +832,7 @@ server <- function(input, output) {
                    
                    tabPanel(
                      
-                     'Map',
+                     tr()$t('Map'),
                      
                      sidebarPanel(
                        selectizeInput("cp_map_crop", label = tr()$t('Select Crop'),
@@ -934,7 +926,7 @@ server <- function(input, output) {
                    
                    tabPanel(
                      
-                     'Map',
+                     tr()$t('Map'),
                      
                      sidebarPanel(
                        selectizeInput("farm_map_crop", label = tr()$t('Select Crop'),
@@ -957,7 +949,7 @@ server <- function(input, output) {
                    
                    tabPanel(
                      
-                     'Data table',
+                     tr()$t('Data Table'),
                      
                      sidebarPanel(
                        selectizeInput("farm_prov_table", label = tr()$t('Select Province'),
@@ -978,7 +970,7 @@ server <- function(input, output) {
                    
                    tabPanel(
                      
-                     'Graphs',
+                     tr()$t('Graphs'),
                      
                      sidebarPanel(
                        selectizeInput("farm_prov_plot", label = tr()$t('Select Province'),
@@ -1026,7 +1018,7 @@ server <- function(input, output) {
                    
                    tabPanel(
                      
-                     'Data table',
+                     tr()$t('Data Table'),
                      
                      sidebarPanel(
                        selectizeInput("can_prov_table", label = tr()$t('Select Province'),
@@ -1050,7 +1042,7 @@ server <- function(input, output) {
                    
                    tabPanel(
                      
-                     'Graphs',
+                     tr()$t('Graphs'),
                      
                      sidebarPanel(
                        selectizeInput("can_crop_plot_1", label = tr()$t('Select Crop'),

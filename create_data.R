@@ -94,7 +94,7 @@ can_snd_crop_names = toTitleCase(gsub('_', ' ',can_snd_crop))
 
 format_lang <- function(x, sel) { 
   
-  if (sel == TRUE) {
+  if (sel == 'en') {
     
     format(round(x,1),big.mark = ',', decimal.mark = '.')
     
