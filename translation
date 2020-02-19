@@ -127,10 +127,6 @@
       "fr": "Blé dur"
     },
 	{
-      "en": "Crop Production",
-      "fr": "Production de cultures"
-    },
-	{
       "en": "Supply and disposition of grains in Canada",
       "fr": "Bilan des grains au Canada"
     },
@@ -262,10 +258,6 @@
       "en": "Map",
       "fr": "Carte"
     },
-	{
-		"en": "About",
-		"fr": "À propos"
-	},
 	{
       "en": "Bubble chart",
       "fr": "Graphique à bulles"
@@ -463,7 +455,7 @@
       "fr": "Sélectionnez une variable"
     },
 	{
-      "en": "Select Variableariable",
+      "en": "Select Variable",
       "fr": "Sélectionnez une variable"
     }
     
