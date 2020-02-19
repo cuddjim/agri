@@ -56,7 +56,7 @@ rbind(
     type_of_crop %in% c('Barley','Oats','Wheat, all','Canola','Peas, dry','Rye, fall remaining','Lentils','Flaxseed')
     ) %>%
   mutate(
-    value=replace_na(value,0),
+    #value=replace_na(value,0),
     type_of_crop=gsub("(.*),.*", "\\1", tolower(type_of_crop)),
     harvest_disposition = str_replace(harvest_disposition, " \\(.*\\)", ""),
     harvest_disposition = gsub(" ","_",tolower(harvest_disposition))
@@ -86,6 +86,3 @@ farm_snd_disp_names = toTitleCase(gsub('_', ' ',farm_snd_disp))
 farm_snd_crop = unique(list_of_sets[['farm_snd']]$type_of_crop)
 farm_snd_crop_names = toTitleCase(gsub('_', ' ',farm_snd_crop))
 
-
-
-colSums(is.na(list_of_sets[['grain_area']]))
