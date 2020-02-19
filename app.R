@@ -4,7 +4,7 @@ library(leaflet); library(plotly)
 library(DT); library(shinyWidgets)
 library(shinythemes)
 
-
+source('create_data.R')
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(

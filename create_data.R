@@ -59,7 +59,10 @@ rbind(
     #value=replace_na(value,0),
     type_of_crop=gsub("(.*),.*", "\\1", tolower(type_of_crop)),
     harvest_disposition = str_replace(harvest_disposition, " \\(.*\\)", ""),
-    harvest_disposition = gsub(" ","_",tolower(harvest_disposition))
+    harvest_disposition = gsub(" ","_",tolower(harvest_disposition)),
+    sad_code = ifelse(grepl('corresponds',geo),
+                      str_c(47,str_pad(parse_number(str_replace(geo, " \\(.*\\)", "")),2,pad=0)),sad_code),
+    geo = ifelse(grepl('47',sad_code),paste('Small Area Region',sad_code),geo)
     )  -> list_of_sets[['grain_area']]
 
 
