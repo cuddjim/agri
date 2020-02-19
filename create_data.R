@@ -91,3 +91,14 @@ can_snd_disp_names = toTitleCase(gsub('_', ' ',can_snd_disp))
 
 can_snd_crop = unique(list_of_sets[['can_snd']]$type_of_crop)
 can_snd_crop_names = toTitleCase(gsub('_', ' ',can_snd_crop))
+
+format_lang <- function(x, sel) { 
+  
+  if (sel == TRUE) {
+    
+    format(round(x,1),big.mark = ',', decimal.mark = '.')
+    
+  }
+  else { format(round(x,1),big.mark = ' ', decimal.mark = ',') }
+  
+}

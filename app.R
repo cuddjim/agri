@@ -4,16 +4,7 @@ library(leaflet); library(plotly)
 library(DT); library(shinyWidgets)
 library(shinythemes)
 
-format_lang <- function(x, sel) { 
-  
-  if (sel == TRUE) {
-  
-  format(round(x,1),big.mark = ',', decimal.mark = '.')
-    
-}
-  else { format(round(x,1),big.mark = ' ', decimal.mark = ',') }
-  
-}
+
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
