@@ -86,3 +86,8 @@ farm_snd_disp_names = toTitleCase(gsub('_', ' ',farm_snd_disp))
 farm_snd_crop = unique(list_of_sets[['farm_snd']]$type_of_crop)
 farm_snd_crop_names = toTitleCase(gsub('_', ' ',farm_snd_crop))
 
+can_snd_disp = unique(list_of_sets[['can_snd']]$supply_and_disposition_of_grains)
+can_snd_disp_names = toTitleCase(gsub('_', ' ',can_snd_disp))
+
+can_snd_crop = unique(list_of_sets[['can_snd']]$type_of_crop)
+can_snd_crop_names = toTitleCase(gsub('_', ' ',can_snd_crop))

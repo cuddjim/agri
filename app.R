@@ -664,46 +664,143 @@ server <- function(input, output) {
   
   # line chart
   can_plot_reactive_1 <- reactive({
-    
-    can_crop_plot_1 = input$can_crop_plot_1
-    can_var_plot = input$can_var_plot
+  
+    can_plot_crop_1 = input$can_crop_plot_1
+    can_plot_var = input$can_var_plot
     
     list_of_sets[['can_snd']] %>% filter(grepl('-07',ref_date)) %>%
       mutate(crop_year = as.numeric(str_sub(ref_date,1,4))) %>%
       select(c('crop_year','geo','type_of_crop','supply_and_disposition_of_grains','value')) %>%
-      filter(type_of_crop == can_crop_plot_1,
-             supply_and_disposition_of_grains == can_var_plot)
+      filter(type_of_crop == can_plot_crop_1,
+             supply_and_disposition_of_grains == can_plot_var)
     
   })
   
   can_plot_reactive_2 <- reactive({
     
-    can_crop_plot_2 = input$can_crop_plot_2
-    can_var_plot = input$can_var_plot
+    can_plot_crop_2 = input$can_crop_plot_2
+    can_plot_var = input$can_var_plot
     
     list_of_sets[['can_snd']] %>% filter(grepl('-07',ref_date)) %>%
       mutate(crop_year = as.numeric(str_sub(ref_date,1,4))) %>%
       select(c('crop_year','geo','type_of_crop','supply_and_disposition_of_grains','value')) %>%
-      filter(type_of_crop == can_crop_plot_2,
-             supply_and_disposition_of_grains == can_var_plot)
+      filter(type_of_crop == can_plot_crop_2,
+             supply_and_disposition_of_grains == can_plot_var)
     
   })
   
   output$can_plot <- renderPlotly({
     
+    xaxis <- list(title = "",
+                  showline = TRUE,
+                  showgrid = FALSE,
+                  showticklabels = TRUE,
+                  linecolor = 'rgb(204, 204, 204)',
+                  linewidth = 2,
+                  autotick = FALSE,
+                  ticks = 'outside',
+                  tickcolor = 'rgb(204, 204, 204)',
+                  tickwidth = 2,
+                  ticklen = 5,
+                  tickfont = list(family = 'Arial',
+                                  size = 12,
+                                  color = 'rgb(82, 82, 82)'))
+    
+    yaxis <- list(title = "",
+                  showgrid = FALSE,
+                  zeroline = FALSE,
+                  showline = FALSE,
+                  showticklabels = FALSE)
+    
+    margin <- list(autoexpand = F,
+                   l = 100,
+                   r = 100,
+                   t = 110)
+    
+    can_plot_reactive_1_ann_1 <- list(
+      xref = 'paper',
+      yref = 'y',
+      x = 0.05,
+      y = can_plot_reactive_1()$value[1],
+      xanchor = 'right',
+      yanchor = 'middle',
+      text = ~paste(format_lang(can_plot_reactive_1()$value[1],input$selected_language),'tonnes'),
+      font = list(family = 'Arial',
+                  size = 16,
+                  color = 'rgba(67,67,67,1)'),
+      showarrow = FALSE)
+    
+    can_plot_reactive_1_ann_2 <- list(
+      xref = 'paper',
+      yref = 'y',
+      x = 0.95,
+      y = can_plot_reactive_1()$value[nrow(can_plot_reactive_1())],
+      xanchor = 'left',
+      yanchor = 'middle',
+      text = ~paste(format_lang(can_plot_reactive_1()$value[nrow(can_plot_reactive_1())],input$selected_language),'tonnes'),
+      font = list(family = 'Arial',
+                  size = 16,
+                  color = 'rgba(67,67,67,1)'),
+      showarrow = FALSE)
+    
+    can_plot_reactive_2_ann_1 <- list(
+      xref = 'paper',
+      yref = 'y',
+      x = 0.05,
+      y = can_plot_reactive_2()$value[1],
+      xanchor = 'right',
+      yanchor = 'middle',
+      text = ~paste(format(can_plot_reactive_2()$value[1],big.mark = ','),'tonnes'),
+      font = list(family = 'Arial',
+                  size = 16,
+                  color = 'rgba(67,67,67,1)'),
+      showarrow = FALSE)
+    
+    can_plot_reactive_2_ann_2 <- list(
+      xref = 'paper',
+      yref = 'y',
+      x = 0.95,
+      y = can_plot_reactive_2()$value[nrow(can_plot_reactive_2())],
+      xanchor = 'left',
+      yanchor = 'middle',
+      text = ~paste(format(can_plot_reactive_2()$value[nrow(can_plot_reactive_2())],big.mark = ','),'tonnes'),
+      font = list(family = 'Arial',
+                  size = 16,
+                  color = 'rgba(67,67,67,1)'),
+      showarrow = FALSE)
+    
+  
+    
     plot_ly() %>%
       add_trace(data = can_plot_reactive_1(),
                 x = ~crop_year,y = ~value,
-                type = 'scatter',mode = 'lines', 
+                type = 'scatter',mode = 'lines', name = input$can_crop_plot_1,
                 hoverinfo = 'text', text = ~paste(format(round(value, 0),
                                                          big.mark = ',',
-                                                         scientific = F),'tonnes')) %>%
+                                                         scientific = F),'tonnes'),
+                line = list(color = 'rgba(67,67,67,1)', width = 5)) %>%
       add_trace(data = can_plot_reactive_2(),
                 x = ~crop_year,y = ~value,
-                type = 'scatter',mode = 'lines',
+                type = 'scatter',mode = 'lines', name = input$can_crop_plot_2,
                 hoverinfo = 'text', text = ~paste(format(round(value, 0),
                                                          big.mark = ',',
-                                                         scientific = F),'tonnes'))
+                                                         scientific = F),'tonnes'),
+                line = list(color = 'rgba(49,130,189,1)', width = 5)) %>% 
+      add_trace(x = ~c(can_plot_reactive_1()$crop_year[1], can_plot_reactive_1()$crop_year[nrow(can_plot_reactive_1())]), y = ~c(can_plot_reactive_1()$value[1], can_plot_reactive_1()$value[nrow(can_plot_reactive_1())]), 
+                hoverinfo = 'text', text = ~paste(format(input$can_crop_plot_1)),
+                type = 'scatter', mode = 'markers', marker = list(color = 'rgba(67,67,67,1)', size = 10), showlegend = FALSE) %>%
+      add_trace(x = ~c(can_plot_reactive_2()$crop_year[1], can_plot_reactive_2()$crop_year[nrow(can_plot_reactive_2())]), y = ~c(can_plot_reactive_2()$value[1], can_plot_reactive_2()$value[nrow(can_plot_reactive_2())]), 
+                hoverinfo = 'text', text = ~paste(format(input$can_crop_plot_2)),
+                type = 'scatter', mode = 'markers', marker = list(color = 'rgba(49,130,189, 1)', size = 10), showlegend = FALSE) %>% 
+      layout(title = paste0('<b>Comparing ',toTitleCase(input$can_crop_plot_1),' and ',toTitleCase(input$can_crop_plot_2),' ',toTitleCase(gsub('_',' ',input$can_var_plot)),' in ','Canada','</b>'), 
+             xaxis = xaxis, yaxis = yaxis, margin = margin,
+             autosize = T,
+             showlegend = T, legend=list(x=min(can_plot_reactive_2()$crop_year),y=max(can_plot_reactive_2()$value,can_plot_reactive_1()$value)),
+             annotations = can_plot_reactive_1_ann_1) %>%
+      layout(annotations = can_plot_reactive_2_ann_1) %>% 
+      layout(annotations = can_plot_reactive_1_ann_2) %>%
+      layout(annotations = can_plot_reactive_2_ann_2)
+    
     
   })
   
@@ -965,14 +1062,12 @@ server <- function(input, output) {
                      'Graphs',
                      
                      sidebarPanel(
-                       selectizeInput("can_prov_plot", label = tr()$t('Select Province'),
-                                      choices = unique(list_of_sets[['can_snd']]$geo), selected='Canada'),
                        selectizeInput("can_crop_plot_1", label = tr()$t('Select Crop'),
-                                      choices = unique(list_of_sets[['can_snd']]$type_of_crop), selected='All wheat'),
+                                      choices = setNames(can_snd_crop,can_snd_crop_names), selected='Canola'),
                        selectizeInput("can_crop_plot_2", label = tr()$t('Select Crop'),
-                                      choices = unique(list_of_sets[['can_snd']]$type_of_crop), selected='Canola'),
+                                      choices = setNames(can_snd_crop,can_snd_crop_names), selected='Barley'),
                        selectizeInput('can_var_plot', label = tr()$t('Select Variable'),
-                                      choices = unique(list_of_sets[['can_snd']]$supply_and_disposition_of_grains), selected = 'Production'),
+                                      choices = setNames(can_snd_disp,can_snd_disp_names), selected = 'Production'),
                        width=3
                      ),
                      
